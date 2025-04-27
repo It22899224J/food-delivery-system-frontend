@@ -11,16 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreVertical, PencilLine, Trash2, Star } from "lucide-react";
+import { PencilLine, Trash2, Star } from "lucide-react";
 import { MenuItem } from "@/types";
 import { EditMenuItemDialog } from "./menu-item-form";
+import { ConfirmDialog } from "./confirm-dialog";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -37,11 +31,8 @@ export const MenuItemCard = ({
 }: MenuItemCardProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleEditClick = () => setIsEditDialogOpen(true);
-
   const handleSaveItem = (updatedItem: MenuItem) => {
     onUpdateItem(updatedItem);
-    setIsEditDialogOpen(false);
   };
 
   return (
@@ -118,14 +109,40 @@ export const MenuItemCard = ({
               {item.available ? "Available" : "Unavailable"}
             </label>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 hover:bg-primary hover:text-primary-foreground transition-colors"
-            onClick={handleEditClick}
-          >
-            <PencilLine className="h-3.5 w-3.5 mr-1.5" /> Edit
-          </Button>
+
+          <div className="flex gap-2">
+            <ConfirmDialog
+              title="Edit this item?"
+              description="Are you sure you want to edit this menu item?"
+              confirmText="Edit"
+              onConfirm={() => setIsEditDialogOpen(true)}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
+                <PencilLine className="h-3.5 w-3.5 mr-1.5" /> Edit
+              </Button>
+            </ConfirmDialog>
+
+            {onDeleteItem && (
+              <ConfirmDialog
+                title="Delete this item?"
+                description="This action cannot be undone. Are you sure you want to delete it?"
+                confirmText="Delete"
+                onConfirm={() => onDeleteItem(item.id)}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Remove
+                </Button>
+              </ConfirmDialog>
+            )}
+          </div>
         </CardFooter>
       </Card>
 
