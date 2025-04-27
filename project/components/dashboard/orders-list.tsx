@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,7 +20,6 @@ import { cn } from '@/lib/utils';
 import { Order, OrderStatus } from '@/types';
 import { 
   MoreVertical, 
-  ExternalLink, 
   Clock, 
   X, 
   Check, 
@@ -29,13 +27,14 @@ import {
   ArrowRight,
   Phone
 } from 'lucide-react';
+import { ordersApi } from '@/lib/api-service';
+
 
 interface OrdersListProps {
   orders: Order[];
-  onStatusUpdate: (orderId: string, status: OrderStatus) => void;
 }
 
-export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
+export function OrdersList({ orders }: OrdersListProps) {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [orderDetailId, setOrderDetailId] = useState<string | null>(null);
   const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
@@ -43,6 +42,24 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
   const [estimatedTime, setEstimatedTime] = useState('30');
   const [rejectReason, setRejectReason] = useState('');
   const [currentOrderId, setCurrentOrderId] = useState<string>('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const restaurantId = localStorage.getItem("restaurantId");
+
+  const updateStatus = async (id: string, status: OrderStatus) => {
+    setIsUpdating(true);
+    try {
+      const response = await ordersApi.updateStatus(id, {status, changedBy:restaurantId});
+      if (response) {
+        
+        
+      }
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+    } finally {
+      setIsUpdating(false);
+      window.location.reload();
+    }
+  };
 
   const toggleOrderSelection = (orderId: string) => {
     if (selectedOrders.includes(orderId)) {
@@ -62,14 +79,18 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
     setRejectDialogOpen(true);
   };
 
-  const confirmAcceptOrder = () => {
-    onStatusUpdate(currentOrderId, 'accepted');
+  const confirmAcceptOrder = async () => {
+    await updateStatus(currentOrderId, 'CONFIRMED');
     setAcceptDialogOpen(false);
   };
 
-  const confirmRejectOrder = () => {
-    onStatusUpdate(currentOrderId, 'cancelled');
+  const confirmRejectOrder = async () => {
+    await updateStatus(currentOrderId, 'CANCELLED');
     setRejectDialogOpen(false);
+  };
+
+  const handleStatusUpdate = async (orderId: string, status: OrderStatus) => {
+    await updateStatus(orderId, status);
   };
 
   const getStatusBadgeStyles = (status: string) => {
@@ -111,13 +132,13 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
 
   const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
     const statusFlow: Record<OrderStatus, OrderStatus | null> = {
-      'pending': 'accepted',
-      'accepted': 'preparing',
-      'preparing': 'ready_for_pickup',
-      'ready_for_pickup': 'out_for_delivery',
-      'out_for_delivery': 'delivered',
-      'delivered': null,
-      'cancelled': null
+      'PENDING': 'CONFIRMED',
+      'CONFIRMED': 'PREPARING',
+      'PREPARING': 'READY_FOR_PICKUP',
+      'READY_FOR_PICKUP': 'OUT_FOR_DELIVERY',
+      'OUT_FOR_DELIVERY': 'DELIVERED',
+      'DELIVERED': null,
+      'CANCELLED': null
     };
     
     return statusFlow[currentStatus];
@@ -171,7 +192,6 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                       />
                     </th>
                     <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Order ID</th>
-                    <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Customer</th>
                     <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Items</th>
                     <th className="h-10 px-4 text-right align-middle font-medium text-muted-foreground">Total</th>
                     <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
@@ -200,16 +220,10 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                         </Button>
                       </td>
                       <td className="p-4 align-middle">
-                        <div className="flex flex-col">
-                          <span>{order.customerName}</span>
-                          <span className="text-muted-foreground text-xs">{order.customerPhone}</span>
-                        </div>
-                      </td>
-                      <td className="p-4 align-middle">
                         {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                       </td>
                       <td className="p-4 align-middle text-right font-medium">
-                        ${order.total.toFixed(2)}
+                        ${order.totalAmount.toFixed(2)}
                       </td>
                       <td className="p-4 align-middle">
                         <Badge className={cn("capitalize", getStatusBadgeStyles(order.status))}>
@@ -221,43 +235,49 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                       </td>
                       <td className="p-4 align-middle text-right">
                         <div className="flex justify-end items-center gap-2">
-                          {order.status === 'pending' && (
+                          {order.status === 'PENDING' && (
                             <>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-8 gap-1 text-green-600 border-green-200 hover:text-green-700 hover:bg-green-50 hover:border-green-300 dark:text-green-400 dark:border-green-950 dark:hover:bg-green-950"
                                 onClick={() => handleAcceptOrder(order.id)}
+                                disabled={isUpdating}
                               >
                                 <Check className="h-4 w-4" />
-                                Accept
+                                {isUpdating && currentOrderId === order.id ? 'Processing...' : 'Accept'}
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-8 gap-1 text-red-600 border-red-200 hover:text-red-700 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-950 dark:hover:bg-red-950"
                                 onClick={() => handleRejectOrder(order.id)}
+                                disabled={isUpdating}
                               >
                                 <X className="h-4 w-4" />
-                                Reject
+                                {isUpdating && currentOrderId === order.id ? 'Processing...' : 'Reject'}
                               </Button>
                             </>
                           )}
                           
-                          {order.status !== 'pending' && order.status !== 'delivered' && order.status !== 'out_for_delivery' && order.status !== 'cancelled' && (
+                          {order.status !== 'PENDING' && order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-8 gap-1"
                               onClick={() => {
-                                const nextStatus = getNextStatus(order.status);
+                                const nextStatus = getNextStatus(order.status as OrderStatus);
                                 if (nextStatus) {
-                                  onStatusUpdate(order.id, nextStatus);
+                                  handleStatusUpdate(order.id, nextStatus);
                                 }
                               }}
+                              disabled={isUpdating}
                             >
                               <ArrowRight className="h-4 w-4" />
-                              {`${formatStatusLabel(getNextStatus(order.status) || '')}`}
+                              {(() => {
+                                const nextStatus = getNextStatus(order.status as OrderStatus);
+                                return nextStatus ? formatStatusLabel(nextStatus) : '';
+                              })()}
                             </Button>
                           )}
                           
@@ -279,10 +299,14 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                               <DropdownMenuItem>
                                 Print Receipt
                               </DropdownMenuItem>
-                              {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                              {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => handleRejectOrder(order.id)}>
+                                  <DropdownMenuItem 
+                                    className="text-red-600 dark:text-red-400" 
+                                    onClick={() => handleRejectOrder(order.id)}
+                                    disabled={isUpdating}
+                                  >
                                     Cancel Order
                                   </DropdownMenuItem>
                                 </>
@@ -320,13 +344,8 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
               <div>
                 <h3 className="font-medium mb-2">Customer Information</h3>
                 <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">Name:</span> {orderDetail.customerName}</p>
-                  <p><span className="font-medium">Phone:</span> {orderDetail.customerPhone}</p>
                   <p><span className="font-medium">Delivery Address:</span> {orderDetail.deliveryAddress}</p>
                   <p><span className="font-medium">Payment Method:</span> {orderDetail.paymentMethod.replace('_', ' ')}</p>
-                  {orderDetail.special_instructions && (
-                    <p><span className="font-medium">Special Instructions:</span> {orderDetail.special_instructions}</p>
-                  )}
                 </div>
               </div>
               
@@ -341,7 +360,7 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                     </div>
                   </div>
                   
-                  {orderDetail.status !== 'pending' && orderDetail.status !== 'cancelled' && (
+                  {orderDetail.status !== 'PENDING' && orderDetail.status !== 'CANCELLED' && (
                     <div className="flex items-start gap-2">
                       <div className="w-4 h-4 mt-0.5 rounded-full bg-blue-500"></div>
                       <div>
@@ -381,17 +400,17 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                     </div>
                   )}
                   
-                  {orderDetail.status === 'delivered' && (
+                  {orderDetail.status === 'DELIVERED' && (
                     <div className="flex items-start gap-2">
                       <div className="w-4 h-4 mt-0.5 rounded-full bg-green-500"></div>
                       <div>
                         <p className="font-medium">Delivered</p>
-                        <p className="text-muted-foreground">{orderDetail.actualDeliveryTime ? formatDate(orderDetail.actualDeliveryTime) : 'N/A'}</p>
+                        <p className="text-muted-foreground">{formatDate(orderDetail.updatedAt)}</p>
                       </div>
                     </div>
                   )}
                   
-                  {orderDetail.status === 'cancelled' && (
+                  {orderDetail.status === 'CANCELLED' && (
                     <div className="flex items-start gap-2">
                       <div className="w-4 h-4 mt-0.5 rounded-full bg-red-500"></div>
                       <div>
@@ -430,48 +449,40 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${orderDetail.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tax</span>
-                <span>${orderDetail.tax.toFixed(2)}</span>
+                <span>${orderDetail.totalAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery Fee</span>
                 <span>${orderDetail.deliveryFee.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-medium text-lg pt-2 border-t">
-                <span>Total</span>
-                <span>${orderDetail.total.toFixed(2)}</span>
-              </div>
             </div>
             
             <DialogFooter className="gap-2 sm:gap-0">
-              {orderDetail.status === 'pending' && (
+              {orderDetail.status === 'PENDING' && (
                 <>
-                  <Button variant="outline" onClick={() => handleRejectOrder(orderDetail.id)}>
+                  <Button variant="outline" onClick={() => handleRejectOrder(orderDetail.id)} disabled={isUpdating}>
                     <X className="mr-2 h-4 w-4" />
-                    Reject
+                    {isUpdating && currentOrderId === orderDetail.id ? 'Processing...' : 'Reject'}
                   </Button>
-                  <Button onClick={() => handleAcceptOrder(orderDetail.id)}>
+                  <Button onClick={() => handleAcceptOrder(orderDetail.id)} disabled={isUpdating}>
                     <Check className="mr-2 h-4 w-4" />
-                    Accept
+                    {isUpdating && currentOrderId === orderDetail.id ? 'Processing...' : 'Accept'}
                   </Button>
                 </>
               )}
               
-              {orderDetail.status !== 'pending' && orderDetail.status !== 'delivered' && orderDetail.status !== 'cancelled' && (
+              {orderDetail.status !== 'PENDING' && orderDetail.status !== 'DELIVERED' && orderDetail.status !== 'CANCELLED' && (
                 <Button 
                   onClick={() => {
-                    const nextStatus = getNextStatus(orderDetail.status);
+                    const nextStatus = getNextStatus(orderDetail.status as OrderStatus);
                     if (nextStatus) {
-                      onStatusUpdate(orderDetail.id, nextStatus);
+                      handleStatusUpdate(orderDetail.id, nextStatus);
                       setOrderDetailId(null);
                     }
                   }}
+                  disabled={isUpdating}
                 >
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  {`Mark as ${formatStatusLabel(getNextStatus(orderDetail.status) || '')}`}
+                  {isUpdating ? 'Processing...' : `Mark as ${formatStatusLabel(getNextStatus(orderDetail.status as OrderStatus) || '')}`}
                 </Button>
               )}
             </DialogFooter>
@@ -509,11 +520,11 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAcceptDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setAcceptDialogOpen(false)} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button onClick={confirmAcceptOrder}>
-              Accept Order
+            <Button onClick={confirmAcceptOrder} disabled={isUpdating}>
+              {isUpdating ? 'Processing...' : 'Accept Order'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -559,11 +570,11 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmRejectOrder}>
-              Reject Order
+            <Button variant="destructive" onClick={confirmRejectOrder} disabled={isUpdating}>
+              {isUpdating ? 'Processing...' : 'Reject Order'}
             </Button>
           </DialogFooter>
         </DialogContent>

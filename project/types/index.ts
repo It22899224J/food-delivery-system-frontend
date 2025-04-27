@@ -61,22 +61,26 @@ export interface MenuCategory {
 // Order types
 export interface Order {
   id: string;
-  customerId: string;
-  customerName: string;
-  customerPhone: string;
-  status: OrderStatus;
-  items: OrderItem[];
-  subtotal: number;
-  tax: number;
+  userId: string;
+  restaurantId: string;
+  deliveryPersonnelId?: string;
   deliveryFee: number;
-  total: number;
-  paymentMethod: string;
+  status:
+    | "PENDING"
+    | "CONFIRMED"
+    | "PREPARING"
+    | "READY_FOR_PICKUP"
+    | "ON_THE_WAY"
+    | "DELIVERED"
+    | "CANCELLED";
+  totalAmount: number;
   deliveryAddress: string;
+  deliveryInstructions?: string;
+  paymentStatus: "PENDING" | "PAID" | "REFUNDED";
+  paymentMethod: string;
   createdAt: string;
   updatedAt: string;
-  estimatedDeliveryTime?: string;
-  actualDeliveryTime?: string;
-  special_instructions?: string;
+  items: OrderItem[];
 }
 
 export interface OrderItem {
@@ -96,13 +100,14 @@ export interface OrderItemOption {
 }
 
 export type OrderStatus =
-  | "pending"
-  | "accepted"
-  | "preparing"
-  | "ready_for_pickup"
-  | "out_for_delivery"
-  | "delivered"
-  | "cancelled";
+  | "PENDING"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "READY_FOR_PICKUP"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "CANCELLED";
+
 
 // Analytics types
 export interface DashboardStats {

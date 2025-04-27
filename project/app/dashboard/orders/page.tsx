@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import {useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,169 +22,42 @@ import {
 import { cn } from '@/lib/utils';
 import { Order, OrderStatus } from '@/types';
 import { OrdersList } from '@/components/dashboard/orders-list';
+import { ordersApi } from '@/lib/api-service';
 
-// Sample orders data
-const sampleOrders: Order[] = [
-  {
-    id: 'ORD-1234',
-    customerId: 'CUST-001',
-    customerName: 'John Doe',
-    customerPhone: '555-123-4567',
-    status: 'pending',
-    items: [
-      { id: 'ITEM-1', menuItemId: 'item1', name: 'Classic Cheeseburger', quantity: 2, price: 8.99, options: [] },
-      { id: 'ITEM-2', menuItemId: 'item3', name: 'French Fries', quantity: 1, price: 3.99, options: [] },
-    ],
-    subtotal: 21.97,
-    tax: 1.76,
-    deliveryFee: 2.99,
-    total: 26.72,
-    paymentMethod: 'credit_card',
-    deliveryAddress: '123 Main St, Anytown, USA',
-    createdAt: '2025-05-18T14:23:00Z',
-    updatedAt: '2025-05-18T14:23:00Z',
-    special_instructions: 'No pickles please'
-  },
-  {
-    id: 'ORD-1233',
-    customerId: 'CUST-002',
-    customerName: 'Jane Smith',
-    customerPhone: '555-987-6543',
-    status: 'accepted',
-    items: [
-      { id: 'ITEM-3', menuItemId: 'item2', name: 'Veggie Burger', quantity: 1, price: 9.99, options: [] },
-      { id: 'ITEM-4', menuItemId: 'item4', name: 'Chocolate Milkshake', quantity: 1, price: 4.99, options: [] },
-    ],
-    subtotal: 14.98,
-    tax: 1.20,
-    deliveryFee: 2.99,
-    total: 19.17,
-    paymentMethod: 'paypal',
-    deliveryAddress: '456 Oak St, Anytown, USA',
-    createdAt: '2025-05-18T13:45:00Z',
-    updatedAt: '2025-05-18T13:50:00Z',
-    estimatedDeliveryTime: '2025-05-18T14:30:00Z'
-  },
-  {
-    id: 'ORD-1232',
-    customerId: 'CUST-003',
-    customerName: 'Robert Johnson',
-    customerPhone: '555-456-7890',
-    status: 'preparing',
-    items: [
-      { id: 'ITEM-5', menuItemId: 'item1', name: 'Classic Cheeseburger', quantity: 1, price: 8.99, options: [] },
-      { id: 'ITEM-6', menuItemId: 'item3', name: 'French Fries', quantity: 1, price: 3.99, options: [] },
-      { id: 'ITEM-7', menuItemId: 'item5', name: 'Chocolate Brownie', quantity: 1, price: 5.99, options: [] },
-    ],
-    subtotal: 18.97,
-    tax: 1.52,
-    deliveryFee: 2.99,
-    total: 23.48,
-    paymentMethod: 'credit_card',
-    deliveryAddress: '789 Pine St, Anytown, USA',
-    createdAt: '2025-05-18T13:10:00Z',
-    updatedAt: '2025-05-18T13:15:00Z',
-    estimatedDeliveryTime: '2025-05-18T14:00:00Z'
-  },
-  {
-    id: 'ORD-1231',
-    customerId: 'CUST-004',
-    customerName: 'Sarah Williams',
-    customerPhone: '555-789-0123',
-    status: 'ready_for_pickup',
-    items: [
-      { id: 'ITEM-8', menuItemId: 'item2', name: 'Veggie Burger', quantity: 2, price: 9.99, options: [] },
-      { id: 'ITEM-9', menuItemId: 'item4', name: 'Chocolate Milkshake', quantity: 2, price: 4.99, options: [] },
-    ],
-    subtotal: 29.96,
-    tax: 2.40,
-    deliveryFee: 0,
-    total: 32.36,
-    paymentMethod: 'cash',
-    deliveryAddress: 'Pickup',
-    createdAt: '2025-05-18T12:35:00Z',
-    updatedAt: '2025-05-18T13:00:00Z'
-  },
-  {
-    id: 'ORD-1230',
-    customerId: 'CUST-005',
-    customerName: 'Michael Brown',
-    customerPhone: '555-234-5678',
-    status: 'out_for_delivery',
-    items: [
-      { id: 'ITEM-10', menuItemId: 'item1', name: 'Classic Cheeseburger', quantity: 3, price: 8.99, options: [] },
-      { id: 'ITEM-11', menuItemId: 'item3', name: 'French Fries', quantity: 2, price: 3.99, options: [] },
-      { id: 'ITEM-12', menuItemId: 'item4', name: 'Chocolate Milkshake', quantity: 3, price: 4.99, options: [] },
-    ],
-    subtotal: 43.94,
-    tax: 3.52,
-    deliveryFee: 2.99,
-    total: 50.45,
-    paymentMethod: 'credit_card',
-    deliveryAddress: '321 Elm St, Anytown, USA',
-    createdAt: '2025-05-18T12:00:00Z',
-    updatedAt: '2025-05-18T12:30:00Z',
-    estimatedDeliveryTime: '2025-05-18T13:30:00Z'
-  },
-  {
-    id: 'ORD-1229',
-    customerId: 'CUST-006',
-    customerName: 'Emily Davis',
-    customerPhone: '555-345-6789',
-    status: 'delivered',
-    items: [
-      { id: 'ITEM-13', menuItemId: 'item2', name: 'Veggie Burger', quantity: 1, price: 9.99, options: [] },
-      { id: 'ITEM-14', menuItemId: 'item5', name: 'Chocolate Brownie', quantity: 1, price: 5.99, options: [] },
-    ],
-    subtotal: 15.98,
-    tax: 1.28,
-    deliveryFee: 2.99,
-    total: 20.25,
-    paymentMethod: 'credit_card',
-    deliveryAddress: '654 Cedar St, Anytown, USA',
-    createdAt: '2025-05-18T11:15:00Z',
-    updatedAt: '2025-05-18T12:15:00Z',
-    estimatedDeliveryTime: '2025-05-18T12:15:00Z',
-    actualDeliveryTime: '2025-05-18T12:10:00Z'
-  },
-  {
-    id: 'ORD-1228',
-    customerId: 'CUST-007',
-    customerName: 'James Wilson',
-    customerPhone: '555-456-7890',
-    status: 'cancelled',
-    items: [
-      { id: 'ITEM-15', menuItemId: 'item1', name: 'Classic Cheeseburger', quantity: 1, price: 8.99, options: [] },
-    ],
-    subtotal: 8.99,
-    tax: 0.72,
-    deliveryFee: 2.99,
-    total: 12.70,
-    paymentMethod: 'paypal',
-    deliveryAddress: '987 Birch St, Anytown, USA',
-    createdAt: '2025-05-18T10:45:00Z',
-    updatedAt: '2025-05-18T10:55:00Z'
-  },
-];
+
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>(sampleOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('all');
+const  restaurantId = localStorage.getItem("restaurantId");
+useEffect(() => {
+    const fetchOrderData = async () => {
+      try {
+        if (!restaurantId) {
+          console.error("Restaurant ID is missing.");
+          return;
+        }
+        const data = await ordersApi.getByRestaurantId(restaurantId);
+        setOrders(data);
+      } catch (error) {
+        console.error("Failed to fetch restaurant data:", error);
+      }
+    };
+    fetchOrderData();
+  }, []);
 
   const getFilteredOrders = (tab: string): Order[] => {
     // First apply search filter
     let filtered = orders.filter(order => 
-      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerPhone.includes(searchQuery)
+      order.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
     
     // Then apply status filter
     if (tab === 'all') return filtered;
     if (tab === 'active') {
       return filtered.filter(order => 
-        ['pending', 'accepted', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(order.status)
+        ['PENDING', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY'].includes(order.status)
       );
     }
     
@@ -196,16 +69,32 @@ export default function OrdersPage() {
     if (status === 'all') return orders.length;
     if (status === 'active') {
       return orders.filter(order => 
-        ['pending', 'accepted', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(order.status)
+        ['PENDING', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY'].includes(order.status)
       ).length;
     }
     return orders.filter(order => order.status === status).length;
   };
   
   const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus, updatedAt: new Date().toISOString() } : order
+    // Map lowercase status to uppercase for backend compatibility
+    const statusMap: Record<string, string> = {
+      pending: "PENDING",
+      accepted: "CONFIRMED",
+      preparing: "PREPARING",
+      ready_for_pickup: "READY_FOR_PICKUP",
+      out_for_delivery: "ON_THE_WAY",
+      delivered: "DELIVERED",
+      cancelled: "CANCELLED",
+    };
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.id === orderId
+          ? {
+              ...order,
+              status: statusMap[newStatus] as Order["status"],
+              updatedAt: new Date().toISOString(),
+            }
+          : order
       )
     );
   };
@@ -269,41 +158,41 @@ export default function OrdersPage() {
           <TabsTrigger value="pending" className="relative">
             Pending
             <Badge className="ml-2 text-xs bg-primary/10 text-primary border-transparent">
-              {countByStatus('pending')}
+              {countByStatus('PENDING')}
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="delivered" className="relative">
             Delivered
             <Badge className="ml-2 text-xs bg-primary/10 text-primary border-transparent">
-              {countByStatus('delivered')}
+              {countByStatus('DELIVERED')}
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="cancelled" className="relative">
             Cancelled
             <Badge className="ml-2 text-xs bg-primary/10 text-primary border-transparent">
-              {countByStatus('cancelled')}
+              {countByStatus('CANCELLED')}
             </Badge>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <OrdersList orders={getFilteredOrders('all')} onStatusUpdate={updateOrderStatus} />
+          <OrdersList orders={getFilteredOrders('all')} />
         </TabsContent>
 
         <TabsContent value="active" className="space-y-4">
-          <OrdersList orders={getFilteredOrders('active')} onStatusUpdate={updateOrderStatus} />
+          <OrdersList orders={getFilteredOrders('active')}  />
         </TabsContent>
 
         <TabsContent value="pending" className="space-y-4">
-          <OrdersList orders={getFilteredOrders('pending')} onStatusUpdate={updateOrderStatus} />
+          <OrdersList orders={getFilteredOrders('PENDING')}  />
         </TabsContent>
 
         <TabsContent value="delivered" className="space-y-4">
-          <OrdersList orders={getFilteredOrders('delivered')} onStatusUpdate={updateOrderStatus} />
+          <OrdersList orders={getFilteredOrders('DELIVERED')}  />
         </TabsContent>
 
         <TabsContent value="cancelled" className="space-y-4">
-          <OrdersList orders={getFilteredOrders('cancelled')} onStatusUpdate={updateOrderStatus} />
+          <OrdersList orders={getFilteredOrders('CANCELLED')}  />
         </TabsContent>
       </Tabs>
     </div>
