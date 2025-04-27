@@ -17,6 +17,7 @@ export interface Restaurant {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  menuItems?: MenuItem[];
 }
 
 export interface MenuItem {
@@ -85,7 +86,7 @@ export interface Order {
 
 export interface OrderItem {
   id: string;
-  menuItemId: string;
+  itemId: string;
   name: string;
   quantity: number;
   price: number;
@@ -144,3 +145,9 @@ export interface MenuPerformance {
   revenue: number;
   averageRating: number;
 }
+
+export type TimeSlotSummary = {
+  time: string;
+  orders: number;
+  revenue: number;
+};
