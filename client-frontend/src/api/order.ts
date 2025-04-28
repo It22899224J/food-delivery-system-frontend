@@ -20,8 +20,8 @@ export const findOrderById = async (id: string): Promise<Order> => {
 };
 
 // Get orders by user ID
-export const findOrdersByUser = async (userId: string): Promise<Order[]> => {
-  const response = await api.get(`/orders/user/${userId}`);
+export const findOrdersByUser = async (userId: string): Promise<any[]> => {
+  const response = await api.get(`http://localhost:3004/user/${userId}`);
   return response.data;
 };
 

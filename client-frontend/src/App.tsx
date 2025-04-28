@@ -17,6 +17,7 @@ import OrderTracking from "./components/OrderTracking";
 import Login from "./components/Login";
 import DriverDashboard from "./components/driver/DriverDashboard";
 import DriverLogin from "./components/driver/DriverLogin";
+import OrderHistory from "./components/OrderHistory";
 
 // Context
 import { CartProvider } from "./context/CartContext";
@@ -56,6 +57,7 @@ function App() {
                     )
                   }
                 />
+                <Route path="/order-history" element={<OrderHistory />} />
               </Routes>
             </main>
           </div>
