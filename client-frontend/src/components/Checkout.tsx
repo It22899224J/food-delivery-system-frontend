@@ -5,6 +5,17 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../api/order";
 import { processCardPayment } from "../api/payment";
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix Leaflet default marker icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const Checkout: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
@@ -71,11 +82,33 @@ const Checkout: React.FC = () => {
     }
   }, [isAuthenticated, items, navigate]);
 
+  const [selectedLocation, setSelectedLocation] = useState({
+    lat: 6.927079,  // Default to Colombo
+    lng: 79.861244
+  });
+
+  const mapContainerStyle = {
+    width: '100%',
+    height: '400px'
+  };
+
+  function LocationMarker() {
+    const map = useMapEvents({
+      click(e : any) {
+        setSelectedLocation(e.latlng);
+      },
+    });
+
+    return selectedLocation ? (
+      <Marker position={selectedLocation} />
+    ) : null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!address.trim()) {
-      setError("Please enter a delivery address");
+    if (!selectedLocation) {
+      setError("Please select a delivery location on the map");
       return;
     }
 
@@ -103,13 +136,14 @@ const Checkout: React.FC = () => {
       const total = subtotal + deliveryFee;
 
       // Create order data object
+      // Update orderData to use selectedLocation
       const orderData = {
         items: orderItems,
         userId: user?.id || "",
         restaurantId,
         restaurantName,
         deliveryFee: deliveryFee,
-        deliveryAddress: address,
+        deliveryAddress: `${selectedLocation.lat},${selectedLocation.lng}`,
         deliveryInstructions: deliveryInstructions,
         deliveryPersonnelId: "",
         paymentMethod: paymentMethod,
@@ -189,18 +223,36 @@ const Checkout: React.FC = () => {
                 <MapPin size={20} className="mr-2 text-orange-500" />
                 Delivery Address
               </h2>
+              
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">
+                  Select Location on Map
+                </label>
+                <div style={mapContainerStyle}>
+                  <MapContainer
+                    center={[selectedLocation.lat, selectedLocation.lng]}
+                    zoom={13}
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <LocationMarker />
+                  </MapContainer>
+                </div>
+              </div>
+
               <div className="mb-4">
                 <label htmlFor="address" className="block text-gray-700 mb-2">
-                  Address
+                  Selected Location
                 </label>
-                <textarea
+                <input
+                  type="text"
                   id="address"
                   className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  rows={3}
-                  placeholder="Enter your full delivery address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  required
+                  value={`Lat: ${selectedLocation.lat.toFixed(6)}, Lng: ${selectedLocation.lng.toFixed(6)}`}
+                  readOnly
                 />
               </div>
               <div className="mb-4">
