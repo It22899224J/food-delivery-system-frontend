@@ -40,7 +40,7 @@ const OrderTracking: React.FC = () => {
             setOrder(updatedOrder);
 
             // Stop polling if order is delivered
-            if (updatedOrder.status === "delivered") {
+            if (updatedOrder.status === "DELIVERED") {
               clearInterval(interval);
             }
           }

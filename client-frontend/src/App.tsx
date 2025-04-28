@@ -1,24 +1,30 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ShoppingCart, User } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { ShoppingCart, User } from "lucide-react";
 
 // Components
-import Navbar from './components/Navbar';
-import RestaurantList from './components/RestaurantList';
-import RestaurantDetail from './components/RestaurantDetail';
-import Cart from './components/Cart';
-import Checkout from './components/Checkout';
-import OrderTracking from './components/OrderTracking';
-import Login from './components/Login';
-import DriverDashboard from './components/driver/DriverDashboard';
-import DriverLogin from './components/driver/DriverLogin';
+import Navbar from "./components/Navbar";
+import RestaurantList from "./components/RestaurantList";
+import RestaurantDetail from "./components/RestaurantDetail";
+import Cart from "./components/Cart";
+import Checkout from "./components/Checkout";
+import OrderTracking from "./components/OrderTracking";
+import Login from "./components/Login";
+import DriverDashboard from "./components/driver/DriverDashboard";
+import DriverLogin from "./components/driver/DriverLogin";
 
 // Context
-import { CartProvider } from './context/CartContext';
-import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 
 // Types
-import { Restaurant, MenuItem } from './types';
+import { Restaurant, MenuItem } from "./types";
+import OrderSuccess from "./components/OrderSuccess";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,16 +43,18 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/tracking/:orderId" element={<OrderTracking />} />
+                <Route path="/order/success" element={<OrderSuccess />} />
                 <Route path="/login" element={<Login />} />
-                <Route 
-                  path="/driver/login" 
-                  element={<DriverLogin />} 
-                />
-                <Route 
-                  path="/driver/dashboard" 
+                <Route path="/driver/login" element={<DriverLogin />} />
+                <Route
+                  path="/driver/dashboard"
                   element={
-                    isDriver ? <DriverDashboard /> : <Navigate to="/driver/login" />
-                  } 
+                    isDriver ? (
+                      <DriverDashboard />
+                    ) : (
+                      <Navigate to="/driver/login" />
+                    )
+                  }
                 />
               </Routes>
             </main>
