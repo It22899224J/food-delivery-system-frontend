@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { MapPin, Package, Truck, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
+import { MapPin, Package, Truck, CheckCircle, AlertCircle, Navigation, DollarSign, FileText, ShoppingBag } from 'lucide-react';
 import { findDeliveryByDriverId, findDriverById, updateDelivery, updateDriverAvailability } from '../../api/delivery';
-import { updateOrderStatus } from '../../api/order';
+import { findOrderById, updateOrderStatus } from '../../api/order';
 
 interface Delivery {
   id: string;
@@ -17,9 +17,35 @@ interface Delivery {
   deliveredAt?: string;
 }
 
+interface OrderItem {
+  id: string;
+  orderId: string;
+  itemId: string;
+  quantity: number;
+  price: number;
+  specialInstructions?: string;
+}
+
+interface Order {
+  id: string;
+  userId: string;
+  restaurantId: string;
+  deliveryPersonnelId?: string;
+  status: string;
+  totalAmount: number;
+  deliveryAddress: string;
+  deliveryInstructions?: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  createdAt: string;
+  updatedAt: string;
+  items: OrderItem[];
+}
+
 const DriverDashboard: React.FC = () => {
   const { user } = useAuth();
   const [currentDelivery, setCurrentDelivery] = useState<Delivery | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [deliveryHistory, setDeliveryHistory] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +82,7 @@ const DriverDashboard: React.FC = () => {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
         {
           headers: {
-            'User-Agent': 'FoodDeliverySystem/1.0' // Required by Nominatim's terms of use
+            'User-Agent': 'FoodDeliverySystem/1.0'
           }
         }
       );
@@ -89,8 +115,17 @@ const DriverDashboard: React.FC = () => {
         const pickup = await getLocationName(active.startLocation.lat, active.startLocation.lng);
         const delivery = await getLocationName(active.endLocation.lat, active.endLocation.lng);
         setLocationNames({ pickup, delivery });
+        
+        // Fetch order details
+        try {
+          const orderDetails = await findOrderById(active.orderId);
+          setCurrentOrder(orderDetails);
+        } catch (orderErr) {
+          console.error('Error fetching order details:', orderErr);
+        }
       } else {
         setCurrentDelivery(null);
+        setCurrentOrder(null);
         setLocationNames({ pickup: '', delivery: '' });
       }
     } catch (err) {
@@ -99,7 +134,7 @@ const DriverDashboard: React.FC = () => {
     }
   };
 
-  const [historyLocationNames, setHistoryLocationNames] = useState<Record<string, LocationName>>({});
+  // const [historyLocationNames, setHistoryLocationNames] = useState<Record<string, LocationName>>({});
 
   const fetchDeliveryHistory = async () => {
     try {
@@ -110,16 +145,16 @@ const DriverDashboard: React.FC = () => {
         .filter(d => ['DELIVERED', 'CANCELLED'].includes(d.status))
         .sort((a, b) => new Date(b.assignedAt || '').getTime() - new Date(a.assignedAt || '').getTime());
       
-      // Fetch location names for each delivery
-      const locationPromises = history.map(async (delivery) => {
-        const pickup = await getLocationName(delivery.startLocation.lat, delivery.startLocation.lng);
-        const dropoff = await getLocationName(delivery.endLocation.lat, delivery.endLocation.lng);
-        return [delivery.id, { pickup, delivery: dropoff }];
-      });
+      // // Fetch location names for each delivery
+      // const locationPromises = history.map(async (delivery) => {
+      //   const pickup = await getLocationName(delivery.startLocation.lat, delivery.startLocation.lng);
+      //   const dropoff = await getLocationName(delivery.endLocation.lat, delivery.endLocation.lng);
+      //   return [delivery.id, { pickup, delivery: dropoff }];
+      // });
   
-      const locationResults = await Promise.all(locationPromises);
-      const locationMap = Object.fromEntries(locationResults);
-      setHistoryLocationNames(locationMap);
+      // const locationResults = await Promise.all(locationPromises);
+      // const locationMap = Object.fromEntries(locationResults);
+      // setHistoryLocationNames(locationMap);
       
       setDeliveryHistory(history.map(delivery => ({
         ...delivery,
@@ -163,7 +198,7 @@ const DriverDashboard: React.FC = () => {
       let orderStatus;
       switch (newStatus) {
         case 'PICKED_UP':
-          orderStatus = 'ON_THE_WAY';  // Changed from READY_FOR_PICKUP to ON_THE_WAY
+          orderStatus = 'ON_THE_WAY';
           break;
         case 'IN_TRANSIT':
           orderStatus = 'ON_THE_WAY';
@@ -238,7 +273,13 @@ const DriverDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <Truck className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-500" size={24} />
+          </div>
+          <p className="text-blue-500 font-medium">Loading your delivery information...</p>
+        </div>
       </div>
     );
   }
@@ -305,10 +346,26 @@ const DriverDashboard: React.FC = () => {
                     <span className="text-slate-600">Order ID</span>
                     <span className="font-medium text-slate-800">{currentDelivery.orderId}</span>
                   </div>
+                  
+                  {currentOrder && (
+                    <>
+                      <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-100">
+                        <span className="text-slate-600">Total Amount</span>
+                        <span className="font-medium text-slate-800">${currentOrder.totalAmount.toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-100">
+                        <span className="text-slate-600">Payment Method</span>
+                        <span className="font-medium text-slate-800">{currentOrder.paymentMethod}</span>
+                      </div>
+                    </>
+                  )}
+                  
                   <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-100">
                     <span className="text-slate-600">Est. Time</span>
                     <span className="font-medium text-slate-800">{currentDelivery.estimatedTime} min</span>
                   </div>
+                  
                   <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-100">
                     <span className="text-slate-600">Status</span>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(currentDelivery.status)}`}>
@@ -316,6 +373,19 @@ const DriverDashboard: React.FC = () => {
                     </span>
                   </div>
                 </div>
+                
+                {/* Delivery Instructions */}
+                {currentOrder && currentOrder.deliveryInstructions && (
+                  <div className="mt-6">
+                    <h4 className="font-medium text-slate-800 mb-3 flex items-center">
+                      <FileText className="mr-2 text-sky-500" size={16} />
+                      Delivery Instructions
+                    </h4>
+                    <div className="bg-white rounded-lg border border-slate-100 p-3">
+                      <p className="text-slate-600 text-sm">{currentOrder.deliveryInstructions}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Locations Card */}
@@ -327,9 +397,6 @@ const DriverDashboard: React.FC = () => {
                 <div className="space-y-6">
                   <div className="p-4 bg-white rounded-lg border border-slate-100">
                     <div className="flex items-start">
-                      <div className="bg-emerald-50 p-2 rounded-full mr-3">
-                        <MapPin className="text-emerald-600" size={20} />
-                      </div>
                       <div className="flex-grow">
                         <p className="font-medium text-slate-800">Pickup Location</p>
                         <p className="text-sm text-slate-600 mb-3">
@@ -352,9 +419,6 @@ const DriverDashboard: React.FC = () => {
 
                   <div className="p-4 bg-white rounded-lg border border-slate-100">
                     <div className="flex items-start">
-                      <div className="bg-rose-50 p-2 rounded-full mr-3">
-                        <MapPin className="text-rose-600" size={20} />
-                      </div>
                       <div className="flex-grow">
                         <p className="font-medium text-slate-800">Delivery Location</p>
                         <p className="text-sm text-slate-600 mb-3">
@@ -530,13 +594,12 @@ const DriverDashboard: React.FC = () => {
                         <div className="flex-grow">
                           <p className="font-medium text-slate-800">Pickup Location</p>
                           <p className="text-sm text-slate-600 mb-3">
-                            {historyLocationNames[delivery.id]?.pickup || 
-                              `${delivery.startLocation.lat}, ${delivery.startLocation.lng}`}
+                            {delivery.startLocation.lat} , {delivery.startLocation.lng}
                           </p>
                         </div>
                       </div>
                     </div>
-                
+
                     {/* Delivery Location */}
                     <div className="p-4 bg-white rounded-lg border border-slate-100">
                       <div className="flex items-start">
@@ -546,8 +609,7 @@ const DriverDashboard: React.FC = () => {
                         <div className="flex-grow">
                           <p className="font-medium text-slate-800">Delivery Location</p>
                           <p className="text-sm text-slate-600 mb-3">
-                            {historyLocationNames[delivery.id]?.delivery || 
-                              `${delivery.endLocation.lat}, ${delivery.endLocation.lng}`}
+                            {delivery.endLocation.lat} , {delivery.endLocation.lng}
                           </p>
                         </div>
                       </div>
