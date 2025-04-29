@@ -32,6 +32,7 @@ export interface MenuItem {
   dietary: string[];
   createdAt: string;
   updatedAt: string;
+  restaurantId: string;
 }
 
 export interface OpeningHours {

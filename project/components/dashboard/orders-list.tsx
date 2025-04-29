@@ -244,7 +244,7 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                             </>
                           )}
                           
-                          {order.status !== 'pending' && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                          {order.status !== 'pending' && order.status !== 'delivered' && order.status !== 'out_for_delivery' && order.status !== 'cancelled' && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -257,7 +257,7 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
                               }}
                             >
                               <ArrowRight className="h-4 w-4" />
-                              Next Status
+                              {`${formatStatusLabel(getNextStatus(order.status) || '')}`}
                             </Button>
                           )}
                           

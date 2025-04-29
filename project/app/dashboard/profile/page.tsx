@@ -67,22 +67,10 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// Default values
-const defaultValues: ProfileFormValues = {
-  name: "Tasty Burgers & Co",
-  description:
-    "We serve the best burgers in town. All our ingredients are locally sourced and our meat is 100% grass-fed.",
-  address: "123 Main St, Anytown, USA",
-  position: { lat: 6.9271, lng: 79.8585 },
-  phone: "(555) 123-4567",
-  email: "contact@tastyburgers.com",
-  isActive: true,
-};
-
 export default function ProfilePage() {
   const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
   const [newCuisine, setNewCuisine] = useState("");
-  const restaurantId = "cma0qetl90000qm2inpzkrj2x"; // Replace with actual restaurant ID
+  const restaurantId = "cma1iafin0000mo2hpm03jnri"; // Replace with actual restaurant ID
   const [position, setPosition] = useState<{ lat: number; lng: number }>({
     lat: 6.9271,
     lng: 79.8585,
@@ -92,9 +80,15 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchRestaurantData() {
       try {
-        const response = await restaurantApi.getById(restaurantId);
-        const data = await response.json();
-        form.reset(data); // Populate form with fetched data
+        const data = await restaurantApi.getById(restaurantId);
+        form.reset(data); // Reset form with fetched data
+        form.setValue("position", data.position || { lat: 6.9271, lng: 79.8585 });
+        form.setValue("address", data.address || "");
+        form.setValue("name", data.name || "");
+        form.setValue("description", data.description || "");
+        form.setValue("phone", data.phone || "");
+        form.setValue("email", data.email || "");
+        form.setValue("isActive", data.isActive || true);
         setCuisineTypes(data.cuisineTypes || []);
         setPosition(data.position || { lat: 6.9271, lng: 79.8585 });
       } catch (error) {
@@ -121,7 +115,6 @@ export default function ProfilePage() {
   };
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
   });
 
   function onSubmit(data: ProfileFormValues) {
@@ -222,7 +215,7 @@ export default function ProfilePage() {
               {/* Map Location */}
               <div>
                 <Label htmlFor="location">Restaurant Location</Label>
-                <p>Location {position.lat}</p>
+              
                 <div className="mt-2">
                   <MapPicker
                     position={position}
@@ -267,48 +260,6 @@ export default function ProfilePage() {
 
               <Separator />
 
-              {/* Cuisine Types */}
-              <div>
-                <Label htmlFor="cuisineTypes">Cuisine Types</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {cuisineTypes.map((cuisine) => (
-                    <Badge
-                      key={cuisine}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {cuisine}
-                      <button
-                        type="button"
-                        onClick={() => removeCuisine(cuisine)}
-                        className="ml-1 rounded-full hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <X className="h-3 w-3" />
-                        <span className="sr-only">Remove {cuisine}</span>
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="flex gap-2 mt-3">
-                  <Input
-                    id="new-cuisine"
-                    value={newCuisine}
-                    onChange={(e) => setNewCuisine(e.target.value)}
-                    placeholder="Add cuisine type..."
-                    className="max-w-xs"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addCuisine}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-              </div>
 
               <Separator />
 

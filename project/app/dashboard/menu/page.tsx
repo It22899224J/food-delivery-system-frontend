@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,7 @@ import {
 import { MenuItem, MenuCategory } from "@/types";
 import { MenuItemCard } from "@/components/dashboard/menu-item-card";
 import { CreateMenuItemDialog } from "@/components/dashboard/menu-item-create-form";
+import { foodItemApi } from "@/lib/api-service";
 
 // Sample menu categories and items
 const sampleCategories: MenuCategory[] = [
@@ -63,114 +64,129 @@ const sampleCategories: MenuCategory[] = [
   },
 ];
 
-const sampleMenuItems: MenuItem[] = [
-  {
-    id: "item1",
-    name: "Classic Cheeseburger",
-    description: "Beef patty with cheese, lettuce, tomato, and special sauce",
-    price: 8.99,
-    image:
-      "https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=600",
-    categoryId: "cat1",
-    available: true,
-    popular: true,
-    allergies: ["Dairy", "Gluten"],
-    dietary: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "item2",
-    name: "Veggie Burger",
-    description: "Plant-based patty with lettuce, tomato, and vegan mayo",
-    price: 9.99,
-    image:
-      "https://images.pexels.com/photos/3616956/pexels-photo-3616956.jpeg?auto=compress&cs=tinysrgb&w=600",
-    categoryId: "cat1",
-    available: true,
-    popular: false,
-    allergies: ["Gluten"],
-    dietary: ["Vegetarian"],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "item3",
-    name: "French Fries",
-    description: "Crispy golden fries seasoned with salt",
-    price: 3.99,
-    image:
-      "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=600",
-    categoryId: "cat2",
-    available: true,
-    popular: true,
-    allergies: [],
-    dietary: ["Vegetarian"],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "item4",
-    name: "Chocolate Milkshake",
-    description: "Creamy chocolate shake topped with whipped cream",
-    price: 4.99,
-    image:
-      "https://images.pexels.com/photos/3727250/pexels-photo-3727250.jpeg?auto=compress&cs=tinysrgb&w=600",
-    categoryId: "cat3",
-    available: true,
-    popular: false,
-    allergies: ["Dairy"],
-    dietary: ["Vegetarian"],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "item5",
-    name: "Chocolate Brownie",
-    description: "Warm chocolate brownie with vanilla ice cream",
-    price: 5.99,
-    image:
-      "https://images.pexels.com/photos/45202/brownie-dessert-cake-sweet-45202.jpeg?auto=compress&cs=tinysrgb&w=600",
-    categoryId: "cat4",
-    available: false,
-    popular: true,
-    allergies: ["Dairy", "Eggs", "Gluten"],
-    dietary: ["Vegetarian"],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+
 
 export default function MenuPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(sampleMenuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] =
     useState<MenuCategory[]>(sampleCategories);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        setIsLoading(true);
+        const items = await foodItemApi.getAll();
+        setMenuItems(items);
+      } catch (error) {
+        console.error("Failed to fetch menu items:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const fetchCategories = async () => {
+      // Assuming categories are fetched from a separate API endpoint
+      // Replace with actual API call when available
+      setCategories([
+        { id: "cat1", name: "Burgers", description: "Juicy burgers with various toppings", order: 1 },
+        { id: "cat2", name: "Sides", description: "Perfect companions to your main dish", order: 2 },
+        { id: "cat3", name: "Beverages", description: "Refreshing drinks to complement your meal", order: 3 },
+        { id: "cat4", name: "Desserts", description: "Sweet treats to finish your meal", order: 4 },
+      ]);
+    };
+
+    fetchMenuItems();
+    fetchCategories();
+  }, []);
 
   const filteredItems = menuItems.filter((item) => {
-    // First apply text search
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Then apply category/availability filter
     if (activeFilter === "all") return matchesSearch;
     if (activeFilter === "available") return matchesSearch && item.available;
     if (activeFilter === "unavailable") return matchesSearch && !item.available;
     if (activeFilter === "popular") return matchesSearch && item.popular;
 
-    // Filter by category
     return matchesSearch && item.categoryId === activeFilter;
   });
 
-  const toggleItemAvailability = (itemId: string) => {
-    setMenuItems((items) =>
-      items.map((item) =>
-        item.id === itemId ? { ...item, available: !item.available } : item
-      )
-    );
+  const toggleItemAvailability = async (itemId: string) => {
+    const item = menuItems.find((item) => item.id === itemId);
+    if (!item) return;
+    
+    try {
+      // Create FormData for the update API call
+      const formData = new FormData();
+      formData.append('name', item.name);
+      formData.append('description', item.description);
+      formData.append('price', item.price.toString());
+      formData.append('categoryId', item.categoryId);
+      formData.append('available', (!item.available).toString());
+      formData.append('popular', item.popular.toString());
+      
+      if (item.allergies) {
+        item.allergies.forEach((allergy) => {
+          formData.append('allergies', allergy);
+        });
+      }
+      
+      if (item.dietary) {
+        item.dietary.forEach((diet) => {
+          formData.append('dietary', diet);
+        });
+      }
+
+      // Don't append the image if we're just toggling availability
+      // unless the API requires it every time
+
+      const updatedItem = await foodItemApi.update(itemId, formData);
+      
+      setMenuItems((items) =>
+        items.map((i) => (i.id === itemId ? updatedItem : i))
+      );
+    } catch (error) {
+      console.error("Failed to update item availability:", error);
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      await foodItemApi.delete(itemId);
+      setMenuItems((items) => items.filter((item) => item.id !== itemId));
+    } catch (error) {
+      console.error("Failed to delete menu item:", error);
+    }
+  };
+
+  const handleCreateItem = async (newItemData: any) => {
+    try {
+      // Convert the new item data to FormData
+      const formData = new FormData();
+      Object.entries(newItemData).forEach(([key, value]) => {
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (Array.isArray(value)) {
+          value.forEach((item) => {
+            formData.append(key, item);
+          });
+        } else if (value !== null && value !== undefined) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      const createdItem = await foodItemApi.create(formData);
+      setMenuItems((items) => [...items, createdItem]);
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create menu item:", error);
+    }
   };
 
   return (
@@ -325,19 +341,32 @@ export default function MenuPage() {
         </Tabs>
       </div>
       <CreateMenuItemDialog
-        open={isCreateDialogOpen}
-        onOpenChange={() => setIsCreateDialogOpen(false)}
-        onSave={(newItem) => {
-          const completeItem: MenuItem = {
-            ...newItem,
-            id: `item${Date.now()}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          setMenuItems((items) => [...items, completeItem]);
-          setIsCreateDialogOpen(false);
-        }}
-      />
+  open={isCreateDialogOpen}
+  onOpenChange={() => setIsCreateDialogOpen(false)}
+  onSave={async (newItem) => {
+    try {
+      const formData = new FormData();
+      Object.entries(newItem).forEach(([key, value]) => {
+        if (key === "image" && value instanceof File) {
+          formData.append("image", value);
+        } else if (Array.isArray(value)) {
+          value.forEach((item) => {
+            formData.append(key, item);
+          });
+        } else if (value !== null && value !== undefined) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      console.log("FormData for new item:", formData); // Debugging line
+      const createdItem = await foodItemApi.create(formData);
+      setMenuItems((items) => [...items, createdItem]);
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create menu item:", error);
+    }
+  }}
+/>
     </>
   );
 }
