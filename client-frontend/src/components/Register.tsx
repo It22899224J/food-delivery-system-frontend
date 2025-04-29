@@ -148,7 +148,6 @@ const Register = () => {
       if (success) {
         navigate('/');
       }
-      debugger;
     } catch (err) {
       setError(err.response.data.message || 'An error occurred during registration. Please try again.');
     } finally {

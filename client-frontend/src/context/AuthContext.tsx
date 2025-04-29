@@ -168,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           id: registeredUser.id.toString(),
           name: registeredUser.name,
           email: registeredUser.email,
-          role: "CUSTOMER",
+          role: registeredUser.role,
           address: registeredUser.address,
           contact: registeredUser.contact,
         };

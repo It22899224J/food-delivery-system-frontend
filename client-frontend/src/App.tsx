@@ -22,6 +22,7 @@ function App() {
   const { isDriver, user, isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // debugger;
     if (isAuthenticated && user?.role === "RESTAURANT_ADMIN") {
       window.open("http://localhost:3000", "_blank");
     }
