@@ -55,6 +55,18 @@ const RestaurantDetail: React.FC = () => {
     loadRestaurantAndMenu();
   }, [id]);
 
+  const dummyBanners = [
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
+    "https://images.unsplash.com/photo-1552566626-52f8b828add9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
+    "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
+    "https://images.unsplash.com/photo-1544148103-0773bf10d330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
+  ];
+
+  const getRandomImage = (images: string[]) => {
+    const randomIndex = Math.floor(Math.random() * images.length);
+    return images[randomIndex];
+  };
   const getDummyMenuItems = (restaurantId: string): any[] => {
     // Create different menu items based on restaurant ID
     switch (restaurantId) {
@@ -66,7 +78,8 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Juicy beef patty with lettuce, tomato, and special sauce",
             price: 12.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "burgers",
             available: true,
             popular: true,
@@ -82,7 +95,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Cheese Fries",
             description: "Crispy fries topped with melted cheddar cheese",
             price: 6.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1585109649139-366815a0d713?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "sides",
             available: true,
             popular: true,
@@ -98,7 +112,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Chocolate Milkshake",
             description: "Rich and creamy chocolate milkshake",
             price: 5.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1572490122747-3968b75cc699?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "drinks",
             available: true,
             popular: false,
@@ -114,7 +129,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Chicken Tenders",
             description: "Crispy chicken tenders served with dipping sauce",
             price: 9.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1562967914-608f82629710?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "chicken",
             available: true,
             popular: false,
@@ -134,7 +150,8 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Classic pizza with tomato sauce, mozzarella, and basil",
             price: 14.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "pizza",
             available: true,
             popular: true,
@@ -150,7 +167,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Pepperoni Pizza",
             description: "Pizza topped with pepperoni and cheese",
             price: 16.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1628840042765-356cda07504e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "pizza",
             available: true,
             popular: true,
@@ -166,7 +184,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Garlic Bread",
             description: "Toasted bread with garlic butter and herbs",
             price: 4.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "sides",
             available: true,
             popular: false,
@@ -183,7 +202,8 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Fresh romaine lettuce with Caesar dressing and croutons",
             price: 8.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "salads",
             available: true,
             popular: false,
@@ -203,7 +223,8 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Stir-fried rice noodles with eggs, tofu, bean sprouts, and peanuts",
             price: 13.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1559314809-0d155014e29e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "noodles",
             available: true,
             popular: true,
@@ -220,7 +241,8 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Spicy Thai curry with coconut milk, vegetables, and choice of protein",
             price: 15.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "curry",
             available: true,
             popular: true,
@@ -237,7 +259,8 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Fresh vegetables wrapped in rice paper with dipping sauce",
             price: 7.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1562967914-01efa7e87832?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "appetizers",
             available: true,
             popular: false,
@@ -253,7 +276,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Mango Sticky Rice",
             description: "Sweet sticky rice with fresh mango and coconut milk",
             price: 6.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1621236378699-8597faf6a11a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "desserts",
             available: true,
             popular: false,
@@ -272,7 +296,8 @@ const RestaurantDetail: React.FC = () => {
             name: "Sample Dish",
             description: "This is a sample menu item",
             price: 9.99,
-            image: "https://via.placeholder.com/150",
+            image:
+              "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1500&q=80",
             categoryId: "default",
             available: true,
             popular: false,
@@ -334,7 +359,7 @@ const RestaurantDetail: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div className="h-64 overflow-hidden">
           <img
-            src={restaurant.image || "https://via.placeholder.com/800x400"}
+            src={restaurant.image || getRandomImage(dummyBanners)}
             alt={restaurant.name}
             className="w-full h-full object-cover"
           />

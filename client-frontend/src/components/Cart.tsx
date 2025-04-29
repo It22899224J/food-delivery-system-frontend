@@ -10,14 +10,14 @@ const Cart: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Calculate subtotal (without delivery fee)
   const subtotal = items.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
-  // Calculate delivery fee as 10% of subtotal
+
   const deliveryFee = subtotal * 0.1;
 
+  //HANDLE CHECKOUT
   const handleCheckout = () => {
     if (!isAuthenticated) {
       navigate("/login");
