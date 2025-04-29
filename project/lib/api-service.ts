@@ -17,6 +17,9 @@ export const restaurantApi = {
   getById: (restaurantId: string) =>
     apiClient.get(`/restaurants/${restaurantId}`).then((res) => res.data),
 
+  getByOwnerId: (ownerId: string) =>
+    apiClient.get(`/restaurants/owner/${ownerId}`).then((res) => res.data),
+
   create: (data: any) =>
     apiClient.post('/restaurants', data).then((res) => res.data),
 
