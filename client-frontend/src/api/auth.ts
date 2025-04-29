@@ -29,7 +29,7 @@ export const authApi = {
   },
 
   // Update user details by ID
-  updateUser: async (id: string, userData: any) => {
+  updateUser: async (id: string, userData: Partial<RegisterUserData> | Partial<RegisterDriverData>) => {
     const response = await api.patch(`${API_BASE_URL}/auth/users/${id}`, userData);
     return response.data;
   },

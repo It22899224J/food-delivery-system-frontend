@@ -12,6 +12,8 @@ interface AuthContextType {
   ) => Promise<boolean>;
   logout: () => void;
   updateDriverAvailability: (isAvailable: boolean) => void;
+  updateProfile: (userData: Partial<User>) => Promise<boolean>;
+  deleteProfile: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -177,6 +179,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const updateProfile = async (userData: Partial<User>): Promise<boolean> => {
+    try {
+      if (!user) return false;
+      
+      // Call the API to update user profile
+      const response = await authApi.updateUser(user.id, userData);
+      
+      if (!response || !response.user) {
+        throw new Error(response?.message || "Profile update failed");
+      }
+      
+      // Update the user in state and localStorage
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      
+      return true;
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      return false;
+    }
+  };
+
+  const deleteProfile = async (): Promise<boolean> => {
+    try {
+      if (!user) return false;
+      
+      // Call the API to delete user profile
+      await authApi.deleteUser(user.id);
+
+      // Log out the user
+      logout();
+      
+      return true;
+    } catch (error) {
+      console.error("Profile deletion failed:", error);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -187,6 +229,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         register,
         logout,
         updateDriverAvailability,
+        updateProfile,
+        deleteProfile,
       }}
     >
       {children}
