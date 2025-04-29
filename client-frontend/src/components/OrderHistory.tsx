@@ -37,7 +37,16 @@ interface Restaurant {
   image: string;
 }
 
-// We'll keep this for item names since they might not be available from the API
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: string;
+  category?: string;
+}
+
+// We'll keep this for fallback if menu items can't be loaded
 const itemDummyData: Record<string, string> = {
   s1: "California Roll",
   s2: "Salmon Nigiri",
@@ -59,6 +68,9 @@ const OrderHistory: React.FC = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [restaurants, setRestaurants] = useState<Record<string, Restaurant>>(
+    {}
+  );
+  const [menuItemsMap, setMenuItemsMap] = useState<Record<string, MenuItem>>(
     {}
   );
   const [loading, setLoading] = useState(true);
@@ -105,8 +117,11 @@ const OrderHistory: React.FC = () => {
     };
   };
 
-  const getItemName = (itemId: string) => {
-    return itemDummyData[itemId] || `Item ${itemId}`;
+  // Function to get menu item name
+  const getMenuItemName = (itemId: string) => {
+    return (
+      menuItemsMap[itemId]?.name || itemDummyData[itemId] || `Item ${itemId}`
+    );
   };
 
   useEffect(() => {
@@ -138,6 +153,7 @@ const OrderHistory: React.FC = () => {
           ...new Set(paidOrders.map((order) => order.restaurantId)),
         ];
         const restaurantData: Record<string, Restaurant> = {};
+        const menuItemsData: Record<string, MenuItem> = {};
 
         for (const id of uniqueRestaurantIds) {
           try {
@@ -150,6 +166,13 @@ const OrderHistory: React.FC = () => {
                   restaurant.image ||
                   "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
               };
+
+              // Store menu items in the map
+              if (restaurant.menuItems) {
+                restaurant.menuItems.forEach((item: MenuItem) => {
+                  menuItemsData[item.id] = item;
+                });
+              }
             }
           } catch (err) {
             console.error(`Error fetching restaurant ${id}:`, err);
@@ -157,6 +180,7 @@ const OrderHistory: React.FC = () => {
         }
 
         setRestaurants(restaurantData);
+        setMenuItemsMap(menuItemsData);
       } catch (err) {
         console.error("Error fetching orders:", err);
         setError("Failed to load your order history. Please try again later.");
@@ -264,7 +288,7 @@ const OrderHistory: React.FC = () => {
                             <span className="font-medium mr-2">
                               {item.quantity}x
                             </span>
-                            <span>{getItemName(item.itemId)}</span>
+                            <span>{getMenuItemName(item.itemId)}</span>
                           </div>
                           <span>
                             ${(item.price * item.quantity).toFixed(2)}
@@ -301,7 +325,7 @@ const OrderHistory: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                  {/* <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
                     <button
                       onClick={() => navigate(`/order/${order.id}`)}
                       className="flex items-center text-orange-500 hover:text-orange-600 transition-colors"
@@ -309,7 +333,7 @@ const OrderHistory: React.FC = () => {
                       View Details
                       <ChevronRight size={16} className="ml-1" />
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             );

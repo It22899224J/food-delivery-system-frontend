@@ -10,11 +10,42 @@ import {
 } from "lucide-react";
 import { findOrderById } from "../api/order";
 
+interface OrderItem {
+  id: string;
+  itemId: string;
+  name?: string;
+  quantity: number;
+  price: number;
+}
+
 const OrderTracking: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [itemNames, setItemNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Retrieve stored item names from sessionStorage
+    const storedItems = sessionStorage.getItem('trackingOrderItems');
+    if (storedItems) {
+      try {
+        const parsedItems = JSON.parse(storedItems);
+        const namesMap: Record<string, string> = {};
+        
+        // Create a map of itemId to name
+        parsedItems.forEach((item: any) => {
+          if (item.itemId && item.name) {
+            namesMap[item.itemId] = item.name;
+          }
+        });
+        
+        setItemNames(namesMap);
+      } catch (err) {
+        console.error("Error parsing stored items:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -56,6 +87,22 @@ const OrderTracking: React.FC = () => {
 
     loadOrder();
   }, [orderId]);
+
+  // Function to get menu item name
+  const getMenuItemName = (item: any) => {
+    // First check if we have the name in our itemNames state
+    if (itemNames[item.itemId]) {
+      return itemNames[item.itemId];
+    }
+    
+    // Then check if the item already has a name property
+    if (item.name) {
+      return item.name;
+    }
+    
+    // Fallback to showing the item ID
+    return `Item ${item.itemId}`;
+  };
 
   const getStatusStep = (status: string) => {
     switch (status.toLowerCase()) {
@@ -219,7 +266,7 @@ const OrderTracking: React.FC = () => {
             {order.items.map((item: any) => (
               <div key={item.id} className="flex justify-between">
                 <span>
-                  {item.quantity}x {item.name || item.itemId}
+                  {item.quantity}x {getMenuItemName(item)}
                 </span>
                 <span>${(item.price * item.quantity).toFixed(2)}</span>
               </div>

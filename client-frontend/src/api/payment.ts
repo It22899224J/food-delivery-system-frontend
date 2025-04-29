@@ -3,7 +3,7 @@ import axios from "axios";
 export const processCardPayment = async (paymentData: any): Promise<any> => {
   try {
     const response = await axios.post(
-      `http://localhost:3006/create-checkout-session`,
+      `http://localhost:3006/create-checkout`,
       paymentData
     );
     return response.data;
