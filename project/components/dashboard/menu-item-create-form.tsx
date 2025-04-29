@@ -115,23 +115,44 @@ export const CreateMenuItemDialog = ({
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64Image = reader.result as string; // This is the Base64 encoded string
-        setImagePreview(base64Image);
+const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-        setFormData((prev) => ({
-          ...prev,
-          image: base64Image, // Store the Base64 image in the form data
-        }));
-      };
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const img = new Image();
+    img.src = reader.result as string;
 
-      reader.readAsDataURL(file); // Start reading the file as Base64
-    }
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const size = 512; // Set your square size here
+
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) return;
+
+      // Crop the image to a square from the center
+      const minSide = Math.min(img.width, img.height);
+      const sx = (img.width - minSide) / 2;
+      const sy = (img.height - minSide) / 2;
+
+      ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+      const base64Image = canvas.toDataURL("image/jpeg", 0.9); 
+      setImagePreview(base64Image);
+      setFormData((prev) => ({
+        ...prev,
+        image: base64Image,
+      }));
+    };
   };
+
+  reader.readAsDataURL(file);
+};
+
 
   const removeImage = () => {
     setImagePreview(null);
