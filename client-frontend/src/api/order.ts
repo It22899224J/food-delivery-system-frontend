@@ -15,7 +15,7 @@ export const findAllOrders = async (): Promise<Order[]> => {
 
 // Get order by ID
 export const findOrderById = async (id: string): Promise<Order> => {
-  const response = await api.get(`/orders/${id}`);
+  const response = await api.get(`http://localhost:3004/${id}`);
   return response.data;
 };
 

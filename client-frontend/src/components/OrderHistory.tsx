@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Clock, MapPin, ArrowLeft, Package, ChevronRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { findOrdersByUser } from "../api/order";
+import { restaurantApi } from "../api/restaurant";
 
-// Define types for your order data
 interface OrderItem {
   id: string;
   itemId: string;
@@ -31,36 +31,13 @@ interface Order {
   totalAmount: number;
 }
 
-// Dummy restaurant data mapping (to be replaced with actual API call later)
-const restaurantDummyData: Record<string, { name: string; image: string }> = {
-  "1": {
-    name: "Burger Palace",
-    image:
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-  },
-  "2": {
-    name: "Pizza Heaven",
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-  },
-  "3": {
-    name: "Sushi Express",
-    image:
-      "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-  },
-  "4": {
-    name: "Taco Fiesta",
-    image:
-      "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-  },
-  "5": {
-    name: "Pasta Paradise",
-    image:
-      "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-  },
-};
+interface Restaurant {
+  id: string;
+  name: string;
+  image: string;
+}
 
-// Dummy item name mapping (to be replaced with actual data later)
+// We'll keep this for item names since they might not be available from the API
 const itemDummyData: Record<string, string> = {
   s1: "California Roll",
   s2: "Salmon Nigiri",
@@ -71,12 +48,19 @@ const itemDummyData: Record<string, string> = {
   p1: "Pepperoni Pizza",
   p2: "Garlic Bread",
   p3: "Soda",
+  menu1: "Classic Burger",
+  menu2: "Cheese Fries",
+  menu3: "Chocolate Milkshake",
+  menu4: "Chicken Tenders",
 };
 
 const OrderHistory: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [restaurants, setRestaurants] = useState<Record<string, Restaurant>>(
+    {}
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,18 +92,19 @@ const OrderHistory: React.FC = () => {
     }
   };
 
-  // Get restaurant info from dummy data
   const getRestaurantInfo = (restaurantId: string) => {
-    return (
-      restaurantDummyData[restaurantId] || {
-        name: `Restaurant ${restaurantId}`,
-        image:
-          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-      }
-    );
+    if (restaurants[restaurantId]) {
+      return restaurants[restaurantId];
+    }
+
+    // Fallback if restaurant data isn't loaded yet
+    return {
+      name: `Restaurant ${restaurantId}`,
+      image:
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    };
   };
 
-  // Get item name from dummy data
   const getItemName = (itemId: string) => {
     return itemDummyData[itemId] || `Item ${itemId}`;
   };
@@ -127,14 +112,14 @@ const OrderHistory: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user || !user.id) {
-        setOrders([]); // No user logged in
+        setOrders([]);
         setLoading(false);
         return;
       }
 
       try {
         console.log("User", user);
-        // Call your API to fetch orders by user ID
+
         const response = await findOrdersByUser(user.id);
 
         if (!response) {
@@ -142,11 +127,36 @@ const OrderHistory: React.FC = () => {
         }
 
         console.log("Orders response:", response);
-        // Filter orders to only show those with "PAID" payment status
+
         const paidOrders = response.filter(
           (order) => order.paymentStatus === "PAID"
         );
         setOrders(paidOrders);
+
+        // Fetch restaurant data for each unique restaurant ID
+        const uniqueRestaurantIds = [
+          ...new Set(paidOrders.map((order) => order.restaurantId)),
+        ];
+        const restaurantData: Record<string, Restaurant> = {};
+
+        for (const id of uniqueRestaurantIds) {
+          try {
+            const restaurant = await restaurantApi.getRestaurantById(id);
+            if (restaurant) {
+              restaurantData[id] = {
+                id: restaurant.id,
+                name: restaurant.name,
+                image:
+                  restaurant.image ||
+                  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+              };
+            }
+          } catch (err) {
+            console.error(`Error fetching restaurant ${id}:`, err);
+          }
+        }
+
+        setRestaurants(restaurantData);
       } catch (err) {
         console.error("Error fetching orders:", err);
         setError("Failed to load your order history. Please try again later.");

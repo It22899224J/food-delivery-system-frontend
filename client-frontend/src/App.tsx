@@ -17,6 +17,7 @@ import AllRestaurants from "./components/AllRestaurants";
 import { useAuth } from "./context/AuthContext";
 import Register from "./components/Register";
 import { useEffect } from "react";
+import TrackMyOrder from "./components/TrackMyOrder";
 
 function App() {
   const { isDriver, user, isAuthenticated } = useAuth();
@@ -38,6 +39,7 @@ function App() {
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/track-order" element={<TrackMyOrder />} />
           <Route path="/tracking/:orderId" element={<OrderTracking />} />
           <Route path="/order/success" element={<OrderSuccess />} />
           <Route path="/login" element={<Login />} />
