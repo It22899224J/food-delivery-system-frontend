@@ -66,7 +66,7 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Juicy beef patty with lettuce, tomato, and special sauce",
             price: 12.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://www.unileverfoodsolutions.com.sg/dam/global-ufs/mcos/SEA/calcmenu/recipes/SG-recipes/vegetables-&-vegetable-dishes/%E7%BB%8F%E5%85%B8%E8%8A%9D%E5%A3%AB%E6%B1%89%E5%A0%A1/main-header.jpg",
             categoryId: "burgers",
             available: true,
             popular: true,
@@ -82,7 +82,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Cheese Fries",
             description: "Crispy fries topped with melted cheddar cheese",
             price: 6.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://media-cldnry.s-nbcnews.com/image/upload/newscms/2024_40/2077804/rick-martinez-cheese-fries-2x1-mc-241004.jpg",
             categoryId: "sides",
             available: true,
             popular: true,
@@ -98,7 +98,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Chocolate Milkshake",
             description: "Rich and creamy chocolate milkshake",
             price: 5.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://images.contentstack.io/v3/assets/bltcedd8dbd5891265b/bltd2f0b951708bdfce/66707638b76a9292bd908d6f/chocolate-truffle-featured-image.jpg?q=70&width=3840&auto=webp",
             categoryId: "drinks",
             available: true,
             popular: false,
@@ -114,7 +114,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Chicken Tenders",
             description: "Crispy chicken tenders served with dipping sauce",
             price: 9.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://www.allrecipes.com/thmb/YwJvX75IUx8uQ7PKz2eTDjCoLvY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/16669-fried-chicken-tenders-DDMFS-4x3-219f03b885be40139c8d93bef21d0a50.jpg",
             categoryId: "chicken",
             available: true,
             popular: false,
@@ -134,7 +134,7 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Classic pizza with tomato sauce, mozzarella, and basil",
             price: 14.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://safrescobaldistatic.blob.core.windows.net/media/2022/11/PIZZA-MARGHERITA.jpg",
             categoryId: "pizza",
             available: true,
             popular: true,
@@ -150,7 +150,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Pepperoni Pizza",
             description: "Pizza topped with pepperoni and cheese",
             price: 16.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://www.perfectitaliano.com.au/content/dam/perfectitaliano-aus/recipe/pepperoni_pizza_standard.jpg",
             categoryId: "pizza",
             available: true,
             popular: true,
@@ -166,7 +166,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Garlic Bread",
             description: "Toasted bread with garlic butter and herbs",
             price: 4.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://www.spicebangla.com/wp-content/uploads/2020/12/Garlic-Bread.webp",
             categoryId: "sides",
             available: true,
             popular: false,
@@ -183,7 +183,7 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Fresh romaine lettuce with Caesar dressing and croutons",
             price: 8.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://img.taste.com.au/Wl3qdnK8/taste/2016/11/chicken-caesar-salad-83105-1.jpeg",
             categoryId: "salads",
             available: true,
             popular: false,
@@ -203,7 +203,7 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Stir-fried rice noodles with eggs, tofu, bean sprouts, and peanuts",
             price: 13.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://cdn.apartmenttherapy.info/image/upload/f_jpg,q_auto:eco,c_fill,g_auto,w_1500,ar_4:3/k%2FPhoto%2FRecipes%2F2024-04-pad-thai-190%2Fpad-thai-190-251",
             categoryId: "noodles",
             available: true,
             popular: true,
@@ -220,7 +220,7 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Spicy Thai curry with coconut milk, vegetables, and choice of protein",
             price: 15.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://i0.wp.com/fortheloveofgourmet.com/wp-content/uploads/2019/06/DSC_0709.jpg?fit=3008%2C2000&ssl=1",
             categoryId: "curry",
             available: true,
             popular: true,
@@ -237,7 +237,7 @@ const RestaurantDetail: React.FC = () => {
             description:
               "Fresh vegetables wrapped in rice paper with dipping sauce",
             price: 7.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://simpletoscratch.com/wp-content/uploads/2020/05/spring-rolls-11.jpg",
             categoryId: "appetizers",
             available: true,
             popular: false,
@@ -253,7 +253,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Mango Sticky Rice",
             description: "Sweet sticky rice with fresh mango and coconut milk",
             price: 6.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://kunyitpepper.com/wp-content/uploads/2025/02/Authentic-Butterfly-Pea-Mango-Sticky-Rice.webp",
             categoryId: "desserts",
             available: true,
             popular: false,
@@ -272,7 +272,7 @@ const RestaurantDetail: React.FC = () => {
             name: "Sample Dish",
             description: "This is a sample menu item",
             price: 9.99,
-            image: "https://via.placeholder.com/150",
+            image: "https://www.thespruceeats.com/thmb/NKrzAkVokEycHnVDEX6vi8Hg3RQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/creamy-tomato-pasta-481963-Hero-5b6afcf6c9e77c0050e73162.jpg",
             categoryId: "default",
             available: true,
             popular: false,
@@ -334,7 +334,7 @@ const RestaurantDetail: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div className="h-64 overflow-hidden">
           <img
-            src={restaurant.image || "https://via.placeholder.com/800x400"}
+            src={restaurant.image || "https://images.ctfassets.net/awb1we50v0om/6tE2cm5qXWYZqMSNmJ8olk/7f9291c8d27a45b9cdef60e5965e43a1/Recipe2.jpg?w=1920&fm=webp&q=70"}
             alt={restaurant.name}
             className="w-full h-full object-cover"
           />
