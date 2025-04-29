@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { MapPin, Package, Truck, CheckCircle, AlertCircle } from 'lucide-react';
+import { findDeliveryByDriverId } from '../../api/delivery';
 
 // Types
 interface Delivery {
@@ -9,8 +10,8 @@ interface Delivery {
   status: 'PENDING' | 'ASSIGNED' | 'PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
   startLocation: { lat: number; lng: number };
   endLocation: { lat: number; lng: number };
-  currentLocation?: { lat: number; lng: number };
-  estimatedTime: number;
+  location?: { lat: number; lng: number };
+  estimatedTime: number; // Changed from optional to required
   assignedAt?: string;
   pickedUpAt?: string;
   deliveredAt?: string;
@@ -30,33 +31,31 @@ const DriverDashboard: React.FC = () => {
     const fetchDeliveries = async () => {
       try {
         setLoading(true);
-        // TODO: Replace with actual API calls
-        const mockCurrentDelivery = {
-          id: '1',
-          orderId: 'ORD123',
-          status: 'ASSIGNED',
-          startLocation: { lat: 6.927079, lng: 79.861244 },
-          endLocation: { lat: 6.847487, lng: 79.923756 },
-          estimatedTime: 30,
-          assignedAt: new Date().toISOString(),
-        } as Delivery;
+        const response = await findDeliveryByDriverId(user.id);
+        const deliveries = Array.isArray(response) ? response : [response].filter(Boolean);
+        
+        // Sort deliveries by status and date
+        const sortedDeliveries = [...deliveries].sort((a, b) => {
+          // Put active deliveries first
+          if (a.status !== 'DELIVERED' && b.status === 'DELIVERED') return -1;
+          if (a.status === 'DELIVERED' && b.status !== 'DELIVERED') return 1;
+          
+          // Sort by date
+          return new Date(b.assignedAt || '').getTime() - new Date(a.assignedAt || '').getTime();
+        });
 
-        const mockHistory = [
-          {
-            id: '2',
-            orderId: 'ORD122',
-            status: 'DELIVERED',
-            startLocation: { lat: 6.927079, lng: 79.861244 },
-            endLocation: { lat: 6.847487, lng: 79.923756 },
-            estimatedTime: 25,
-            assignedAt: '2024-03-15T10:00:00Z',
-            deliveredAt: '2024-03-15T10:30:00Z',
-          },
-          // Add more mock history items as needed
-        ];
+        // Set current delivery (first non-delivered delivery)
+        const active = sortedDeliveries.find(d => d.status !== 'DELIVERED' && d.status !== 'CANCELLED');
+        setCurrentDelivery(active || null);
 
-        setCurrentDelivery(mockCurrentDelivery);
-        setDeliveryHistory(mockHistory);
+        // Set history (all other deliveries)
+        const history = sortedDeliveries.filter(d => 
+          d.status === 'DELIVERED' || d.status === 'CANCELLED' || 
+          (active && d.id !== active.id)
+        );
+        setDeliveryHistory(history);
+        
+        setError(null);
       } catch (err) {
         setError('Failed to fetch delivery information');
         console.error(err);

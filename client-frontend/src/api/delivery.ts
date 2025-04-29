@@ -72,3 +72,8 @@ export const findDeliveryByOrderId = async (orderId: string): Promise<Delivery> 
   const response = await api.get(`${DELIVERY_API_URL}/deliveries/orders/${orderId}`);
   return response.data;
 };
+
+export const findDeliveryByDriverId = async (driverId: string): Promise<Delivery[]> => {
+  const response = await api.get(`${DELIVERY_API_URL}/deliveries/drivers/${driverId}`);
+  return response.data;
+};
