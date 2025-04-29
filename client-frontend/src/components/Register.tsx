@@ -147,12 +147,10 @@ const Register = () => {
       
       if (success) {
         navigate('/');
-      } else {
-        setError('Registration failed. Please try again.');
       }
+      debugger;
     } catch (err) {
-      console.error('Registration error:', err);
-      setError('An error occurred during registration. Please try again.');
+      setError(err.response.data.message || 'An error occurred during registration. Please try again.');
     } finally {
       setIsLoading(false);
     }

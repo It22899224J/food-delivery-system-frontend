@@ -30,16 +30,14 @@ const Login: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      const success = await login(email, password);
+      const success = await login(email.trim(), password.trim());
+      console.log('Login success:', success);
       
       if (success) {
         navigate('/');
-      } else {
-        setError('Invalid email or password');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('An error occurred during login. Please try again.');
+      setError(err.response.data.message || 'An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +48,11 @@ const Login: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+          role="alert"
+          aria-live="assertive"
+        >
           {error}
         </div>
       )}

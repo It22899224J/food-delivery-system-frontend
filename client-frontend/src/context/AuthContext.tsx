@@ -81,11 +81,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return true;
       } catch (error) {
         console.error("Failed to decode token:", error);
-        return false;
+        throw error;
       }
     } catch (error) {
       console.error("Login failed:", error);
-      return false;
+      throw error;
     }
   };
 
