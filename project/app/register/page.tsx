@@ -77,7 +77,7 @@ export default function RegisterPage() {
     lat: 6.9271,
     lng: 79.8585,
   });
-  const resturantAdminId = localStorage.getItem("userId") || "12345666";
+  const resturantAdminId = localStorage.getItem("token") || "12345666";
 
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationFormSchema),
