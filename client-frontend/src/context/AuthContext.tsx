@@ -125,7 +125,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         });
 
+        console.log("Driver details", userData)
+
         const response2 = await createDriver({
+          id: response.user.id.toString(),
           name: userData.name,
           email: userData.email,
           vehicleType: (userData as RegisterDriverData).vehicleType,
@@ -134,6 +137,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           isAvailable: true,
           location: location
         });
+
+        console.log(response2);
 
         if (!response2.name || !response2.email) {
           throw new Error(response?.message || "Registration failed");

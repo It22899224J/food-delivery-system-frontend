@@ -29,7 +29,7 @@ export const updateDelivery = async (id: string, updateDto: UpdateDelivery): Pro
 };
 
 // Driver endpoints
-export const createDriver = async (createDriverDto: Omit<DeliveryDriver, 'id' | 'createdAt' | 'updatedAt' | 'totalDeliveries' | 'activeDeliveryId'>): Promise<DeliveryDriver> => {
+export const createDriver = async (createDriverDto: Omit<DeliveryDriver, 'createdAt' | 'updatedAt' | 'totalDeliveries' | 'activeDeliveryId'>): Promise<DeliveryDriver> => {
   const response = await axios.post(`${DELIVERY_API_URL}/drivers`, createDriverDto);
   return response.data;
 };

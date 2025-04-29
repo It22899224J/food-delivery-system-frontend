@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { MapPin, Package, Truck, CheckCircle, AlertCircle } from 'lucide-react';
-import { findDeliveryByDriverId } from '../../api/delivery';
+import { findDeliveryByDriverId, updateDelivery } from '../../api/delivery';
 
 // Types
 interface Delivery {
@@ -11,7 +11,7 @@ interface Delivery {
   startLocation: { lat: number; lng: number };
   endLocation: { lat: number; lng: number };
   location?: { lat: number; lng: number };
-  estimatedTime: number; // Changed from optional to required
+  estimatedTime: number;
   assignedAt?: string;
   pickedUpAt?: string;
   deliveredAt?: string;
@@ -24,37 +24,62 @@ const DriverDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchCurrentDelivery = async () => {
+    try {
+      const response = await findDeliveryByDriverId(user?.id || '');
+      const deliveries = Array.isArray(response) ? response : [response];
+      
+      const active = deliveries.find(d => 
+        !['DELIVERED', 'CANCELLED'].includes(d.status)
+      );
+      
+      console.log('Active Delivery:', active);
+      
+      if (active) {
+        setCurrentDelivery({
+          ...active,
+          estimatedTime: active.estimatedTime || 30
+        });
+      } else {
+        setCurrentDelivery(null);
+      }
+    } catch (err) {
+      console.error('Error fetching current delivery:', err);
+      setError('Failed to fetch current delivery');
+    }
+  };
+
+  const fetchDeliveryHistory = async () => {
+    try {
+      const response = await findDeliveryByDriverId(user?.id || '');
+      const deliveries = Array.isArray(response) ? response : [response];
+      
+      const history = deliveries
+        .filter(d => ['DELIVERED', 'CANCELLED'].includes(d.status))
+        .sort((a, b) => new Date(b.assignedAt || '').getTime() - new Date(a.assignedAt || '').getTime());
+      
+      console.log('Delivery History:', history);
+      
+      setDeliveryHistory(history.map(delivery => ({
+        ...delivery,
+        estimatedTime: delivery.estimatedTime || 30
+      })));
+    } catch (err) {
+      console.error('Error fetching delivery history:', err);
+      setError('Failed to fetch delivery history');
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     
-    // Fetch current delivery and history
-    const fetchDeliveries = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const response = await findDeliveryByDriverId(user.id);
-        const deliveries = Array.isArray(response) ? response : [response].filter(Boolean);
-        
-        // Sort deliveries by status and date
-        const sortedDeliveries = [...deliveries].sort((a, b) => {
-          // Put active deliveries first
-          if (a.status !== 'DELIVERED' && b.status === 'DELIVERED') return -1;
-          if (a.status === 'DELIVERED' && b.status !== 'DELIVERED') return 1;
-          
-          // Sort by date
-          return new Date(b.assignedAt || '').getTime() - new Date(a.assignedAt || '').getTime();
-        });
-
-        // Set current delivery (first non-delivered delivery)
-        const active = sortedDeliveries.find(d => d.status !== 'DELIVERED' && d.status !== 'CANCELLED');
-        setCurrentDelivery(active || null);
-
-        // Set history (all other deliveries)
-        const history = sortedDeliveries.filter(d => 
-          d.status === 'DELIVERED' || d.status === 'CANCELLED' || 
-          (active && d.id !== active.id)
-        );
-        setDeliveryHistory(history);
-        
+        await Promise.all([
+          fetchCurrentDelivery(),
+          fetchDeliveryHistory()
+        ]);
         setError(null);
       } catch (err) {
         setError('Failed to fetch delivery information');
@@ -64,26 +89,35 @@ const DriverDashboard: React.FC = () => {
       }
     };
 
-    fetchDeliveries();
+    fetchData();
   }, [user]);
 
   const handleStatusUpdate = async (newStatus: Delivery['status']) => {
     if (!currentDelivery) return;
 
     try {
-      // TODO: Replace with actual API call
-      const updatedDelivery = {
-        ...currentDelivery,
+      setLoading(true);
+      
+      // Call the API to update delivery status
+      const updatedDelivery = await updateDelivery(currentDelivery.id, {
         status: newStatus,
         ...(newStatus === 'PICKED_UP' && { pickedUpAt: new Date().toISOString() }),
         ...(newStatus === 'DELIVERED' && { deliveredAt: new Date().toISOString() }),
-      };
+      });
 
-      setCurrentDelivery(updatedDelivery);
-      // Show success message
+      setCurrentDelivery({
+        ...updatedDelivery,
+        estimatedTime: updatedDelivery.estimatedTime || 30
+      });
+      
+      // Refresh the deliveries list
+      await fetchCurrentDelivery();
+      await fetchDeliveryHistory();
     } catch (err) {
       setError('Failed to update delivery status');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -170,36 +204,99 @@ const DriverDashboard: React.FC = () => {
             </div>
 
             <div className="border-t pt-6">
-              <h3 className="font-medium text-gray-700 mb-4">Update Status</h3>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => handleStatusUpdate('PICKED_UP')}
-                  disabled={currentDelivery.status !== 'ASSIGNED'}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Mark as Picked Up
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate('IN_TRANSIT')}
-                  disabled={currentDelivery.status !== 'PICKED_UP'}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Start Delivery
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate('DELIVERED')}
-                  disabled={currentDelivery.status !== 'IN_TRANSIT'}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Mark as Delivered
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate('CANCELLED')}
-                  disabled={['DELIVERED', 'CANCELLED'].includes(currentDelivery.status)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel Delivery
-                </button>
+              <h3 className="font-medium text-gray-700 mb-4">Delivery Progress</h3>
+              <div className="flex flex-col space-y-4">
+                {/* Status Timeline */}
+                <div className="relative">
+                  <div className="absolute left-8 top-0 h-full w-0.5 bg-gray-200"></div>
+                  
+                  {/* Pickup Status */}
+                  <div className="relative flex items-center mb-8">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                      currentDelivery.status === 'ASSIGNED' 
+                        ? 'bg-blue-100 text-blue-600' 
+                        : currentDelivery.status === 'PICKED_UP' || currentDelivery.status === 'IN_TRANSIT' || currentDelivery.status === 'DELIVERED'
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      <Package size={24} />
+                    </div>
+                    <div className="ml-4 flex-grow">
+                      <h4 className="font-medium">Pick up Order</h4>
+                      <p className="text-sm text-gray-500">Collect order from restaurant</p>
+                      {currentDelivery.status === 'ASSIGNED' && (
+                        <button
+                          onClick={() => handleStatusUpdate('PICKED_UP')}
+                          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm transition-colors"
+                        >
+                          Confirm Pickup
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Start Delivery Status */}
+                  <div className="relative flex items-center mb-8">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                      currentDelivery.status === 'PICKED_UP'
+                        ? 'bg-blue-100 text-blue-600'
+                        : currentDelivery.status === 'IN_TRANSIT' || currentDelivery.status === 'DELIVERED'
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      <Truck size={24} />
+                    </div>
+                    <div className="ml-4 flex-grow">
+                      <h4 className="font-medium">Start Delivery</h4>
+                      <p className="text-sm text-gray-500">Begin the delivery journey</p>
+                      {currentDelivery.status === 'PICKED_UP' && (
+                        <button
+                          onClick={() => handleStatusUpdate('IN_TRANSIT')}
+                          className="mt-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm transition-colors"
+                        >
+                          Start Delivery
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Complete Delivery Status */}
+                  <div className="relative flex items-center">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                      currentDelivery.status === 'IN_TRANSIT'
+                        ? 'bg-blue-100 text-blue-600'
+                        : currentDelivery.status === 'DELIVERED'
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      <CheckCircle size={24} />
+                    </div>
+                    <div className="ml-4 flex-grow">
+                      <h4 className="font-medium">Complete Delivery</h4>
+                      <p className="text-sm text-gray-500">Hand over order to customer</p>
+                      {currentDelivery.status === 'IN_TRANSIT' && (
+                        <button
+                          onClick={() => handleStatusUpdate('DELIVERED')}
+                          className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm transition-colors"
+                        >
+                          Complete Delivery
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cancel Button - Always at bottom */}
+                {!['DELIVERED', 'CANCELLED'].includes(currentDelivery.status) && (
+                  <div className="pt-4 border-t mt-4">
+                    <button
+                      onClick={() => handleStatusUpdate('CANCELLED')}
+                      className="w-full md:w-auto px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                    >
+                      Cancel Delivery
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

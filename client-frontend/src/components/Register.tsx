@@ -141,6 +141,8 @@ const Register = () => {
         (registrationData as RegisterDriverData).vehicleType = formData.vehicleType;
         (registrationData as RegisterDriverData).licensePlate = formData.licensePlate;
       }
+
+      console.log('Registration data:', registrationData);
       
       // Call the register function from AuthContext
       const success = await register(registrationData);
