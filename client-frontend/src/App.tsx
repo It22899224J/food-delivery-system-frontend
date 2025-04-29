@@ -30,7 +30,7 @@ import AllRestaurants from "./components/AllRestaurants";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isDriver, setIsDriver] = useState(false);
+  const [isDriver, setIsDriver] = useState(true);
 
   return (
     <AuthProvider>
