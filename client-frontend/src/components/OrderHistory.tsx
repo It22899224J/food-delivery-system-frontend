@@ -280,7 +280,9 @@ const OrderHistory: React.FC = () => {
                     <div className="flex justify-between">
                       <div className="text-sm text-gray-600">
                         <span className="font-medium">Payment Method:</span>{" "}
-                        {order.paymentMethod}
+                        {order.paymentMethod === "credit_card"
+                          ? "CARD"
+                          : order.paymentMethod}
                       </div>
                       <div className="text-sm text-gray-600">
                         <span className="font-medium">Payment Status:</span>{" "}
