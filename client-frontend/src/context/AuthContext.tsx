@@ -1,80 +1,163 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Driver } from '../types';
-
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { User, Driver, RegisterDriverData, RegisterUserData } from "../types";
+import { authApi } from "../api/auth";
+import { createDriver } from "../api/delivery";
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isDriver: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  driverLogin: (email: string, password: string) => Promise<boolean>;
+  register: (
+    userData: RegisterUserData | RegisterDriverData
+  ) => Promise<boolean>;
   logout: () => void;
   updateDriverAvailability: (isAvailable: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
 
   useEffect(() => {
     // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem("user");
     if (savedUser) {
       const parsedUser = JSON.parse(savedUser);
       setUser(parsedUser);
       setIsAuthenticated(true);
-      setIsDriver(parsedUser.role === 'driver');
+      setIsDriver(parsedUser.role === "DRIVER");
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // In a real app, this would be an API call
-      // For demo purposes, we'll simulate a successful login
-      const mockUser: User = {
-        id: '1',
-        name: 'John Doe',
-        email: email,
-        role: 'customer',
-        addresses: ['123 Main St, City, Country']
-      };
+      // Call the login API
+      const response = await authApi.login(email, password);
 
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      setIsDriver(false);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      return true;
+      // Check if login was successful
+      if (!response || !response.token) {
+        console.error("Login failed: Invalid response from server");
+        return false;
+      }
+
+      // Store token in localStorage for subsequent API calls
+      localStorage.setItem("token", response.token);
+
+      // Decode the JWT token to get user information
+      // The token is in format: header.payload.signature
+      // We need the payload part which is the second part
+      try {
+        const tokenParts = response.token.split(".");
+        if (tokenParts.length !== 3) {
+          throw new Error("Invalid token format");
+        }
+
+        // Decode the base64 payload
+        const payload = JSON.parse(atob(tokenParts[1]));
+
+        // Create user object from token payload
+        const loggedInUser: User = {
+          id: payload.id.toString(),
+          name: payload.name,
+          email: payload.email,
+          role: payload.role,
+          contact: payload.contact || "",
+          address: payload.address || "",
+        };
+
+        // Update state
+        setUser(loggedInUser);
+        setIsAuthenticated(true);
+        setIsDriver(payload.role === "DRIVER");
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
+
+        return true;
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+        return false;
+      }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       return false;
     }
   };
 
-  const driverLogin = async (email: string, password: string): Promise<boolean> => {
+  const register = async (
+    userData: RegisterUserData | RegisterDriverData
+  ): Promise<boolean> => {
     try {
-      // In a real app, this would be an API call
-      // For demo purposes, we'll simulate a successful login
-      const mockDriver: Driver = {
-        id: '2',
-        name: 'Driver User',
-        email: email,
-        role: 'driver',
-        isAvailable: true,
-        currentOrders: [],
-        completedOrders: [],
-        phone: '555-123-4567'
-      };
+      const response = await authApi.register(userData);
+      if(userData.role === "DRIVER"){
+        const response2 = await createDriver({
+          name: userData.name,
+          email: userData.email,
+          vehicleType: (userData as RegisterDriverData).vehicleType,
+          licensePlate: (userData as RegisterDriverData).licensePlate,
+          contact: userData.contact,
+          isAvailable: true,
+          currentLocation: {
+            "lat": 6.937567543517343,
+            "lng": 79.94650308629167
+          }
+        });
 
-      setUser(mockDriver);
-      setIsAuthenticated(true);
-      setIsDriver(true);
-      localStorage.setItem('user', JSON.stringify(mockDriver));
+        if (!response2.name || !response2.email) {
+          throw new Error(response?.message || "Registration failed");
+        }
+      }
+
+      if (!response || !response.user) {
+        throw new Error(response?.message || "Registration failed");
+      }
+
+      const registeredUser = response.user;
+
+      if (userData.role === "DRIVER") {
+        const driverUser: Driver = {
+          id: registeredUser.id.toString(),
+          name: registeredUser.name,
+          email: registeredUser.email,
+          role: "DRIVER",
+          address: registeredUser.address,
+          contact: registeredUser.contact,
+          isAvailable: true,
+          licensePlate: (userData as RegisterDriverData).licensePlate,
+          vehicleType: (userData as RegisterDriverData).vehicleType,
+        };
+
+        setUser(driverUser);
+        setIsAuthenticated(true);
+        setIsDriver(true);
+        localStorage.setItem("user", JSON.stringify(driverUser));
+      } else {
+        const customerUser: User = {
+          id: registeredUser.id.toString(),
+          name: registeredUser.name,
+          email: registeredUser.email,
+          role: "CUSTOMER",
+          address: registeredUser.address,
+          contact: registeredUser.contact,
+        };
+
+        setUser(customerUser);
+        setIsAuthenticated(true);
+        setIsDriver(false);
+        localStorage.setItem("user", JSON.stringify(customerUser));
+      }
+
       return true;
     } catch (error) {
-      console.error('Driver login failed:', error);
-      return false;
+      if (error instanceof Error) {
+        console.error("Registration failed:", error.message);
+      } else {
+        console.error("Registration failed:", error);
+      }
+      throw error; // Propagate error to component for proper error handling
     }
   };
 
@@ -82,27 +165,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setIsAuthenticated(false);
     setIsDriver(false);
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
+    localStorage.removeItem("token"); // Also remove the token
   };
 
   const updateDriverAvailability = (isAvailable: boolean) => {
-    if (user && user.role === 'driver') {
+    if (user && user.role === "DRIVER") {
       const updatedUser = { ...user, isAvailable } as Driver;
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isDriver,
-      login,
-      driverLogin,
-      logout,
-      updateDriverAvailability
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        isDriver,
+        login,
+        register,
+        logout,
+        updateDriverAvailability,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -111,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

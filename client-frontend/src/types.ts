@@ -65,21 +65,37 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "customer" | "driver";
-  phone?: string;
-  addresses?: string[];
+  role: "CUSTOMER" | "DRIVER" | "RESTAURANT_ADMIN";
+  contact: string;
+  address: string;
 }
 
 export interface Driver extends User {
-  isAvailable: boolean;
-  currentOrders: Order[];
-  completedOrders: Order[];
+  isAvailable: boolean,
+  deliveries?: [],
+  vehicleType: "BIKE" |"CAR" | "VAN";
+  licensePlate: string;
   location?: {
     lat: number;
     lng: number;
   };
 }
 
+
+export interface RegisterUserData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  contact: string;
+  address: string;
+  role: "CUSTOMER" | "DRIVER" | "RESTAURANT_ADMIN";
+}
+
+export interface RegisterDriverData extends RegisterUserData {
+  vehicleType: "BIKE" | "CAR" | "VAN";
+  licensePlate: string;
+}
 
 export type DeliveryStatus =
   | "PENDING"
