@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { MapPin, Package, Truck, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
 import { findDeliveryByDriverId, findDriverById, updateDelivery, updateDriverAvailability } from '../../api/delivery';
+import { updateOrderStatus } from '../../api/order';
 
-// Types
 interface Delivery {
   id: string;
   orderId: string;
@@ -40,6 +40,34 @@ const DriverDashboard: React.FC = () => {
     fetchDriverAvailability();
   }, [user]);
 
+  interface LocationName {
+    pickup: string;
+    delivery: string;
+  }
+  
+  const [locationNames, setLocationNames] = useState<LocationName>({
+    pickup: '',
+    delivery: ''
+  });
+  
+  const getLocationName = async (lat: number, lng: number): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'FoodDeliverySystem/1.0' // Required by Nominatim's terms of use
+          }
+        }
+      );
+      const data = await response.json();
+      return data.display_name || `${lat}, ${lng}`;
+    } catch (error) {
+      console.error('Error fetching location name:', error);
+      return `${lat}, ${lng}`;
+    }
+  };
+  
   const fetchCurrentDelivery = async () => {
     try {
       const response = await findDeliveryByDriverId(user?.id || '');
@@ -56,14 +84,22 @@ const DriverDashboard: React.FC = () => {
           ...active,
           estimatedTime: active.estimatedTime || 30
         });
+  
+        // Fetch location names
+        const pickup = await getLocationName(active.startLocation.lat, active.startLocation.lng);
+        const delivery = await getLocationName(active.endLocation.lat, active.endLocation.lng);
+        setLocationNames({ pickup, delivery });
       } else {
         setCurrentDelivery(null);
+        setLocationNames({ pickup: '', delivery: '' });
       }
     } catch (err) {
       console.error('Error fetching current delivery:', err);
       setError('Failed to fetch current delivery');
     }
   };
+
+  const [historyLocationNames, setHistoryLocationNames] = useState<Record<string, LocationName>>({});
 
   const fetchDeliveryHistory = async () => {
     try {
@@ -74,7 +110,16 @@ const DriverDashboard: React.FC = () => {
         .filter(d => ['DELIVERED', 'CANCELLED'].includes(d.status))
         .sort((a, b) => new Date(b.assignedAt || '').getTime() - new Date(a.assignedAt || '').getTime());
       
-      console.log('Delivery History:', history);
+      // Fetch location names for each delivery
+      const locationPromises = history.map(async (delivery) => {
+        const pickup = await getLocationName(delivery.startLocation.lat, delivery.startLocation.lng);
+        const dropoff = await getLocationName(delivery.endLocation.lat, delivery.endLocation.lng);
+        return [delivery.id, { pickup, delivery: dropoff }];
+      });
+  
+      const locationResults = await Promise.all(locationPromises);
+      const locationMap = Object.fromEntries(locationResults);
+      setHistoryLocationNames(locationMap);
       
       setDeliveryHistory(history.map(delivery => ({
         ...delivery,
@@ -114,12 +159,34 @@ const DriverDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Call the API to update delivery status
-      const updatedDelivery = await updateDelivery(currentDelivery.id, {
-        status: newStatus,
-        ...(newStatus === 'PICKED_UP' && { pickedUpAt: new Date().toISOString() }),
-        ...(newStatus === 'DELIVERED' && { deliveredAt: new Date().toISOString() }),
-      });
+      // Map delivery status to order status
+      let orderStatus;
+      switch (newStatus) {
+        case 'PICKED_UP':
+          orderStatus = 'ON_THE_WAY';  // Changed from READY_FOR_PICKUP to ON_THE_WAY
+          break;
+        case 'IN_TRANSIT':
+          orderStatus = 'ON_THE_WAY';
+          break;
+        case 'DELIVERED':
+          orderStatus = 'DELIVERED';
+          break;
+        case 'CANCELLED':
+          orderStatus = 'CANCELLED';
+          break;
+        default:
+          orderStatus = 'PREPARING';
+      }
+
+      // Call both APIs to update delivery and order status
+      const [updatedDelivery] = await Promise.all([
+        updateDelivery(currentDelivery.id, {
+          status: newStatus,
+          ...(newStatus === 'PICKED_UP' && { pickedUpAt: new Date().toISOString() }),
+          ...(newStatus === 'DELIVERED' && { deliveredAt: new Date().toISOString() }),
+        }),
+        updateOrderStatus(currentDelivery.orderId, { status: orderStatus, changedBy: user?.id || '' }),
+      ]);
 
       setCurrentDelivery({
         ...updatedDelivery,
@@ -266,7 +333,7 @@ const DriverDashboard: React.FC = () => {
                       <div className="flex-grow">
                         <p className="font-medium text-slate-800">Pickup Location</p>
                         <p className="text-sm text-slate-600 mb-3">
-                          {currentDelivery.startLocation.lat}, {currentDelivery.startLocation.lng}
+                          {locationNames.pickup || `${currentDelivery.startLocation.lat}, ${currentDelivery.startLocation.lng}`}
                         </p>
                         <a
                           href={`https://www.google.com/maps/dir/?api=1&destination=${currentDelivery.startLocation.lat},${currentDelivery.startLocation.lng}`}
@@ -291,7 +358,7 @@ const DriverDashboard: React.FC = () => {
                       <div className="flex-grow">
                         <p className="font-medium text-slate-800">Delivery Location</p>
                         <p className="text-sm text-slate-600 mb-3">
-                          {currentDelivery.endLocation.lat}, {currentDelivery.endLocation.lng}
+                          {locationNames.delivery || `${currentDelivery.endLocation.lat}, ${currentDelivery.endLocation.lng}`}
                         </p>
                         <a
                           href={`https://www.google.com/maps/dir/?api=1&destination=${currentDelivery.endLocation.lat},${currentDelivery.endLocation.lng}`}
@@ -426,37 +493,65 @@ const DriverDashboard: React.FC = () => {
       </div>
 
       {/* Delivery History Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-        <h2 className="text-2xl font-semibold mb-6 flex items-center text-gray-800">
-          <CheckCircle className="mr-2 text-orange-500" size={24} />
+      <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow border border-slate-100">
+        <h2 className="text-2xl font-semibold mb-6 flex items-center text-slate-800">
+          <CheckCircle className="mr-2 text-sky-500" size={24} />
           Delivery History
         </h2>
 
         {deliveryHistory.length > 0 ? (
-          <div className="divide-y divide-gray-200">
+          <div className="space-y-6">
             {deliveryHistory.map((delivery) => (
-              <div key={delivery.id} className="py-4 first:pt-0 last:pb-0">
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                  <div>
-                    <p className="font-medium text-gray-800">Order #{delivery.orderId}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(delivery.status)}`}>
-                        {delivery.status}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {delivery.deliveredAt && `Delivered at ${formatDateTime(delivery.deliveredAt)}`}
-                      </span>
+              <div key={delivery.id} className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                <div className="flex flex-col gap-6">
+                  {/* Order Details */}
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <div>
+                      <h3 className="font-medium text-slate-800 text-lg">Order #{delivery.orderId}</h3>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(delivery.status)}`}>
+                          {delivery.status}
+                        </span>
+                        <span className="text-sm text-slate-500">
+                          {delivery.deliveredAt && `Delivered at ${formatDateTime(delivery.deliveredAt)}`}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p className="flex items-center gap-2">
-                      <MapPin className="text-green-500" size={16} />
-                      Pickup: {delivery.startLocation.lat}, {delivery.startLocation.lng}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <MapPin className="text-red-500" size={16} />
-                      Dropoff: {delivery.endLocation.lat}, {delivery.endLocation.lng}
-                    </p>
+                
+                  {/* Locations */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Pickup Location */}
+                    <div className="p-4 bg-white rounded-lg border border-slate-100">
+                      <div className="flex items-start">
+                        <div className="bg-emerald-50 p-2 rounded-full mr-3">
+                          <MapPin className="text-emerald-600" size={20} />
+                        </div>
+                        <div className="flex-grow">
+                          <p className="font-medium text-slate-800">Pickup Location</p>
+                          <p className="text-sm text-slate-600 mb-3">
+                            {historyLocationNames[delivery.id]?.pickup || 
+                              `${delivery.startLocation.lat}, ${delivery.startLocation.lng}`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                
+                    {/* Delivery Location */}
+                    <div className="p-4 bg-white rounded-lg border border-slate-100">
+                      <div className="flex items-start">
+                        <div className="bg-rose-50 p-2 rounded-full mr-3">
+                          <MapPin className="text-rose-600" size={20} />
+                        </div>
+                        <div className="flex-grow">
+                          <p className="font-medium text-slate-800">Delivery Location</p>
+                          <p className="text-sm text-slate-600 mb-3">
+                            {historyLocationNames[delivery.id]?.delivery || 
+                              `${delivery.endLocation.lat}, ${delivery.endLocation.lng}`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

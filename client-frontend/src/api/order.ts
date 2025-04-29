@@ -38,7 +38,7 @@ export const updateOrderStatus = async (
   id: string,
   updateStatusDto: any
 ): Promise<Order> => {
-  const response = await api.patch(`/orders/${id}/status`, updateStatusDto);
+  const response = await api.patch(`http://localhost:3004/${id}/status`, updateStatusDto);
   return response.data;
 };
 
