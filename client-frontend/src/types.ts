@@ -79,3 +79,74 @@ export interface Driver extends User {
     lng: number;
   };
 }
+
+
+export type DeliveryStatus =
+  | "PENDING"
+  | "ASSIGNED"
+  | "PICKED_UP"
+  | "IN_TRANSIT"
+  | "DELIVERED"
+  | "CANCELLED";
+
+export type VehicleType = "BIKE" | "CAR" | "VAN";
+
+export interface Location {
+  lat: number;
+  lng: number;
+}
+
+export interface DeliveryDriver {
+  id: string;
+  name: string;
+  email: string;
+  contact: string;
+  vehicleType: VehicleType;
+  licensePlate: string;
+  isAvailable: boolean;
+  currentLocation?: Location;
+  rating?: number;
+  totalDeliveries: number;
+  activeDeliveryId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Delivery {
+  id: string;
+  orderId: string;
+  driverId: string;
+  driver: DeliveryDriver;
+  status: DeliveryStatus;
+  assignedAt?: string;
+  pickedUpAt?: string;
+  deliveredAt?: string;
+  currentLocation?: Location;
+  startLocation: Location;
+  endLocation: Location;
+  estimatedTime?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateDelivery {
+  orderId: string;
+  startLocation: {
+    lat: number;
+    lng: number;
+  };
+  endLocation: {
+    lat: number;
+    lng: number;
+  };
+  estimatedTime?: number;
+}
+
+export interface UpdateDelivery {
+  status?: DeliveryStatus;
+  currentLocation?: {
+    lat: number;
+    lng: number;
+  };
+  estimatedTime?: number;
+}
