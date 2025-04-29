@@ -32,6 +32,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { restaurantApi } from "@/lib/api-service";
+import { setRestaurantId } from "@/lib/utils";
 
 // Load MapPicker dynamically
 const MapPicker = dynamic(() => import("@/components/ui/map-picker"), {
@@ -70,7 +71,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function ProfilePage() {
   const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
   const [newCuisine, setNewCuisine] = useState("");
-  const restaurantId = "cma1iafin0000mo2hpm03jnri"; // Replace with actual restaurant ID
+  const restaurantId = "cma2nyo8u0000lh2g3ftxhdrx"; 
   const [position, setPosition] = useState<{ lat: number; lng: number }>({
     lat: 6.9271,
     lng: 79.8585,
@@ -81,8 +82,12 @@ export default function ProfilePage() {
     async function fetchRestaurantData() {
       try {
         const data = await restaurantApi.getById(restaurantId);
-        form.reset(data); // Reset form with fetched data
-        form.setValue("position", data.position || { lat: 6.9271, lng: 79.8585 });
+        setRestaurantId(data.id); 
+        form.reset(data); 
+        form.setValue(
+          "position",
+          data.position || { lat: 6.9271, lng: 79.8585 }
+        );
         form.setValue("address", data.address || "");
         form.setValue("name", data.name || "");
         form.setValue("description", data.description || "");
@@ -215,7 +220,7 @@ export default function ProfilePage() {
               {/* Map Location */}
               <div>
                 <Label htmlFor="location">Restaurant Location</Label>
-              
+
                 <div className="mt-2">
                   <MapPicker
                     position={position}
@@ -259,7 +264,6 @@ export default function ProfilePage() {
               </div>
 
               <Separator />
-
 
               <Separator />
 

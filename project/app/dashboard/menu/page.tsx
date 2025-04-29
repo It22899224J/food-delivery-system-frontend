@@ -35,6 +35,7 @@ import { MenuItem, MenuCategory } from "@/types";
 import { MenuItemCard } from "@/components/dashboard/menu-item-card";
 import { CreateMenuItemDialog } from "@/components/dashboard/menu-item-create-form";
 import { foodItemApi } from "@/lib/api-service";
+import { getRestaurantId } from "@/lib/utils";
 
 // Sample menu categories and items
 const sampleCategories: MenuCategory[] = [
@@ -64,10 +65,9 @@ const sampleCategories: MenuCategory[] = [
   },
 ];
 
-
-
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const restaurantId = "cma2nyo8u0000lh2g3ftxhdrx";
   const [categories, setCategories] =
     useState<MenuCategory[]>(sampleCategories);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -75,7 +75,6 @@ export default function MenuPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
@@ -93,10 +92,30 @@ export default function MenuPage() {
       // Assuming categories are fetched from a separate API endpoint
       // Replace with actual API call when available
       setCategories([
-        { id: "cat1", name: "Burgers", description: "Juicy burgers with various toppings", order: 1 },
-        { id: "cat2", name: "Sides", description: "Perfect companions to your main dish", order: 2 },
-        { id: "cat3", name: "Beverages", description: "Refreshing drinks to complement your meal", order: 3 },
-        { id: "cat4", name: "Desserts", description: "Sweet treats to finish your meal", order: 4 },
+        {
+          id: "cat1",
+          name: "Burgers",
+          description: "Juicy burgers with various toppings",
+          order: 1,
+        },
+        {
+          id: "cat2",
+          name: "Sides",
+          description: "Perfect companions to your main dish",
+          order: 2,
+        },
+        {
+          id: "cat3",
+          name: "Beverages",
+          description: "Refreshing drinks to complement your meal",
+          order: 3,
+        },
+        {
+          id: "cat4",
+          name: "Desserts",
+          description: "Sweet treats to finish your meal",
+          order: 4,
+        },
       ]);
     };
 
@@ -120,26 +139,27 @@ export default function MenuPage() {
   const toggleItemAvailability = async (itemId: string) => {
     const item = menuItems.find((item) => item.id === itemId);
     if (!item) return;
-    
+
     try {
       // Create FormData for the update API call
       const formData = new FormData();
-      formData.append('name', item.name);
-      formData.append('description', item.description);
-      formData.append('price', item.price.toString());
-      formData.append('categoryId', item.categoryId);
-      formData.append('available', (!item.available).toString());
-      formData.append('popular', item.popular.toString());
-      
+      formData.append("name", item.name);
+      formData.append("description", item.description);
+      formData.append("price", item.price.toString());
+      formData.append("categoryId", item.categoryId);
+      formData.append("available", (!item.available).toString());
+      formData.append("popular", item.popular.toString());
+      formData.append("restaurantId", restaurantId.toString());
+
       if (item.allergies) {
         item.allergies.forEach((allergy) => {
-          formData.append('allergies', allergy);
+          formData.append("allergies", allergy);
         });
       }
-      
+
       if (item.dietary) {
         item.dietary.forEach((diet) => {
-          formData.append('dietary', diet);
+          formData.append("dietary", diet);
         });
       }
 
@@ -147,7 +167,7 @@ export default function MenuPage() {
       // unless the API requires it every time
 
       const updatedItem = await foodItemApi.update(itemId, formData);
-      
+
       setMenuItems((items) =>
         items.map((i) => (i.id === itemId ? updatedItem : i))
       );
@@ -170,8 +190,8 @@ export default function MenuPage() {
       // Convert the new item data to FormData
       const formData = new FormData();
       Object.entries(newItemData).forEach(([key, value]) => {
-        if (key === 'image' && value instanceof File) {
-          formData.append('image', value);
+        if (key === "image" && value instanceof File) {
+          formData.append("image", value);
         } else if (Array.isArray(value)) {
           value.forEach((item) => {
             formData.append(key, item);
@@ -341,32 +361,33 @@ export default function MenuPage() {
         </Tabs>
       </div>
       <CreateMenuItemDialog
-  open={isCreateDialogOpen}
-  onOpenChange={() => setIsCreateDialogOpen(false)}
-  onSave={async (newItem) => {
-    try {
-      const formData = new FormData();
-      Object.entries(newItem).forEach(([key, value]) => {
-        if (key === "image" && value instanceof File) {
-          formData.append("image", value);
-        } else if (Array.isArray(value)) {
-          value.forEach((item) => {
-            formData.append(key, item);
-          });
-        } else if (value !== null && value !== undefined) {
-          formData.append(key, value.toString());
-        }
-      });
+        open={isCreateDialogOpen}
+        onOpenChange={() => setIsCreateDialogOpen(false)}
+        restaurantId={getRestaurantId() || restaurantId}
+        onSave={async (newItem) => {
+          try {
+            const formData = new FormData();
+            Object.entries(newItem).forEach(([key, value]) => {
+              if (key === "image" && value instanceof File) {
+                formData.append("image", value);
+              } else if (Array.isArray(value)) {
+                value.forEach((item) => {
+                  formData.append(key, item);
+                });
+              } else if (value !== null && value !== undefined) {
+                formData.append(key, value.toString());
+              }
+            });
 
-      console.log("FormData for new item:", formData); // Debugging line
-      const createdItem = await foodItemApi.create(formData);
-      setMenuItems((items) => [...items, createdItem]);
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to create menu item:", error);
-    }
-  }}
-/>
+            console.log("FormData for new item:", formData); // Debugging line
+            const createdItem = await foodItemApi.create(formData);
+            setMenuItems((items) => [...items, createdItem]);
+            setIsCreateDialogOpen(false);
+          } catch (error) {
+            console.error("Failed to create menu item:", error);
+          }
+        }}
+      />
     </>
   );
 }
