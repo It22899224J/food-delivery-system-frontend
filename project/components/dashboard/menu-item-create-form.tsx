@@ -21,6 +21,7 @@ interface CreateMenuItemDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (newItem: Omit<MenuItem, "id" | "createdAt" | "updatedAt">) => void;
   categoryId?: string;
+  restaurantId: string;
 }
 
 export const CreateMenuItemDialog = ({
@@ -28,6 +29,7 @@ export const CreateMenuItemDialog = ({
   onOpenChange,
   onSave,
   categoryId,
+  restaurantId,
 }: CreateMenuItemDialogProps) => {
   const [formData, setFormData] = useState<{
     name: string;
@@ -50,7 +52,7 @@ export const CreateMenuItemDialog = ({
     popular: false,
     allergies: [],
     dietary: [],
-    restaurantId: "cma1iafin0000mo2hpm03jnri",
+    restaurantId: restaurantId,
   });
 
   const [newAllergy, setNewAllergy] = useState("");
@@ -64,8 +66,6 @@ export const CreateMenuItemDialog = ({
     { id: "cat3", name: "Beverages" },
     { id: "cat4", name: "Desserts" },
   ];
-
-  const restaurantId = "cma1iafin0000mo2hpm03jnri";
 
   // Reset form when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
