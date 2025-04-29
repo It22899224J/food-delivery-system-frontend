@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { MapPin, Package, Truck, CheckCircle, AlertCircle, Navigation, DollarSign, FileText, ShoppingBag } from 'lucide-react';
 import { findDeliveryByDriverId, findDriverById, updateDelivery, updateDriverAvailability } from '../../api/delivery';
-import { findOrderById, updateOrderStatus } from '../../api/order';
+import { findOrderById, updateOrderStatus, updatePaymentStatus } from '../../api/order';
 
 interface Delivery {
   id: string;
@@ -284,6 +284,26 @@ const DriverDashboard: React.FC = () => {
     );
   }
 
+  const handlePaymentReceived = async () => {
+    if (!currentDelivery || !currentOrder) return;
+
+    try {
+      setLoading(true);
+      await updatePaymentStatus(currentOrder.id, {
+        status: 'PAID',
+        transactionId: `CASH-${currentOrder.id}-${Date.now()}`,
+      });
+
+      // Refresh the current delivery and order details
+      await fetchCurrentDelivery();
+    } catch (err) {
+      setError('Failed to update payment status');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Availability Toggle */}
@@ -504,6 +524,34 @@ const DriverDashboard: React.FC = () => {
                       )}
                     </div>
                   </div>
+
+                  {/* Payment Received Step*/}
+                  {currentOrder && currentOrder.paymentMethod.toLowerCase() === 'cash' && (
+                    <div className="relative flex items-center">
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                        currentDelivery.status === 'IN_TRANSIT' && currentOrder.paymentStatus !== 'PAID'
+                          ? 'bg-sky-50 text-sky-600'
+                          : currentOrder.paymentStatus === 'PAID'
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'bg-slate-100 text-slate-400'
+                      }`}>
+                        <DollarSign size={24} />
+                      </div>
+                      <div className="ml-4 flex-grow">
+                        <h4 className="font-medium text-slate-800">Payment Received</h4>
+                        <p className="text-sm text-slate-500">Confirm cash payment from customer</p>
+                        {currentDelivery.status === 'IN_TRANSIT' && currentOrder.paymentStatus !== 'PAID' && (
+                          <button
+                            onClick={handlePaymentReceived}
+                            className="mt-3 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 
+                            transition-colors text-sm font-medium shadow-sm hover:shadow-md active:transform active:scale-95"
+                          >
+                            Confirm Payment
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Complete Delivery Step */}
                   <div className="relative flex items-center">

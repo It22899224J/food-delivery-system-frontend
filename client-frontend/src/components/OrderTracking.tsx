@@ -65,7 +65,7 @@ const OrderTracking: React.FC = () => {
         return 1;
       case "preparing":
         return 2;
-      case "out_for_delivery":
+      case "on_the_way":
         return 3;
       case "delivered":
         return 4;
