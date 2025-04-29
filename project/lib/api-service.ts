@@ -1,9 +1,17 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/";
+const API_URL_ORDER = "http://localhost:3004/";
 
 const apiClient = axios.create({
   baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+const apiOrderClient = axios.create({
+  baseURL: API_URL_ORDER,
   headers: {
     "Content-Type": "application/json",
   },
@@ -79,9 +87,14 @@ export const ordersApi = {
       .get(`/restaurants/${restaurantId}/orders/${orderId}`)
       .then((res) => res.data),
 
-  updateStatus: (restaurantId: string, orderId: string, status: string) =>
-    apiClient
-      .put(`/restaurants/${restaurantId}/orders/${orderId}/status`, { status })
+  getByRestaurantId: (restaurantId: string) =>
+    apiOrderClient
+      .get(`/restaurant/${restaurantId}`)
+      .then((res) => res.data),
+
+  updateStatus: (id: string, updateStatusDto: any) =>
+    apiOrderClient
+      .patch(`/${id}/status`, updateStatusDto)
       .then((res) => res.data),
 
   acceptOrder: (restaurantId: string, orderId: string, estimatedTime: number) =>
