@@ -25,14 +25,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
 
+   const isTokenValid = (token: string): boolean => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const currentTime = Math.floor(Date.now() / 1000); // in seconds
+      return payload.exp && payload.exp > currentTime;
+    } catch (error) {
+      console.error("Invalid token:", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
-    // Check for saved user in localStorage
     const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      setIsAuthenticated(true);
-      setIsDriver(parsedUser.role === "DRIVER");
+    const token = localStorage.getItem("token");
+
+    if (savedUser && token) {
+      if (!isTokenValid(token)) {
+        console.warn("Token expired or invalid. Logging out...");
+        logout(); // invalidate session
+        return;
+      }
+
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+        setIsDriver(parsedUser.role === "DRIVER");
+      } catch (error) {
+        console.error("Failed to parse saved user:", error);
+        logout();
+      }
     }
   }, []);
 
@@ -77,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsAuthenticated(true);
         setIsDriver(payload.role === "DRIVER");
         localStorage.setItem("user", JSON.stringify(loggedInUser));
+        localStorage.setItem("token", JSON.stringify(response.token));
 
         return true;
       } catch (error) {
@@ -124,8 +148,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           );
         });
-
-        console.log("Driver details", userData)
 
         const response2 = await createDriver({
           id: response.user.id.toString(),
