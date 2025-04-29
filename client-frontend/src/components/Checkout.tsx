@@ -105,6 +105,10 @@ const Checkout: React.FC = () => {
     return selectedLocation ? <Marker position={selectedLocation} /> : null;
   }
 
+  const [showModal, setShowModal] = useState(false);
+  const [loadingMessage] = useState("Finding drivers...");
+  const [orderSuccess] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -116,6 +120,7 @@ const Checkout: React.FC = () => {
     try {
       setIsSubmitting(true);
       setError(null);
+      setShowModal(true);
 
       // Get restaurant info from first item (assuming all items are from same restaurant)
       const restaurantId = items[0]?.restaurantId;
@@ -169,6 +174,7 @@ const Checkout: React.FC = () => {
             );
           }
         } catch (paymentError) {
+          setShowModal(false);
           console.error("Payment processing failed:", paymentError);
           setError("Payment processing failed. Please try again.");
           setIsSubmitting(false);
@@ -183,6 +189,7 @@ const Checkout: React.FC = () => {
       // Clear cart and redirect to tracking page
       clearCart();
     } catch (err) {
+      setShowModal(false);
       console.error("Failed to place order:", err);
       setError("Failed to place your order. Please try again.");
     } finally {
@@ -378,6 +385,26 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl text-center">
+            {!orderSuccess ? (
+              <>
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500 border-solid mx-auto mb-4"></div>
+                <h3 className="text-xl font-semibold text-gray-800">{loadingMessage}</h3>
+                <p className="text-gray-600 mt-2">Please wait while we process your order...</p>
+              </>
+            ) : (
+              <>
+                <div className="text-green-500 text-5xl mb-4">✓</div>
+                <h3 className="text-xl font-semibold text-gray-800">{loadingMessage}</h3>
+                <p className="text-gray-600 mt-2">Redirecting you to your orders...</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
