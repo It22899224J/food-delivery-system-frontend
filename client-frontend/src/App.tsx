@@ -27,6 +27,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { Restaurant, MenuItem } from "./types";
 import OrderSuccess from "./components/OrderSuccess";
 import AllRestaurants from "./components/AllRestaurants";
+import TrackMyOrder from "./components/TrackMyOrder";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/tracking/:orderId" element={<OrderTracking />} />
+                <Route path="/track-order" element={<TrackMyOrder />} />
                 <Route path="/order/success" element={<OrderSuccess />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/all-restaurants" element={<AllRestaurants />} />

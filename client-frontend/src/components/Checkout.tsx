@@ -5,16 +5,19 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../api/order";
 import { processCardPayment } from "../api/payment";
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 const Checkout: React.FC = () => {
@@ -83,25 +86,23 @@ const Checkout: React.FC = () => {
   }, [isAuthenticated, items, navigate]);
 
   const [selectedLocation, setSelectedLocation] = useState({
-    lat: 6.927079,  // Default to Colombo
-    lng: 79.861244
+    lat: 6.927079, // Default to Colombo
+    lng: 79.861244,
   });
 
   const mapContainerStyle = {
-    width: '100%',
-    height: '400px'
+    width: "100%",
+    height: "400px",
   };
 
   function LocationMarker() {
     const map = useMapEvents({
-      click(e : any) {
+      click(e: any) {
         setSelectedLocation(e.latlng);
       },
     });
 
-    return selectedLocation ? (
-      <Marker position={selectedLocation} />
-    ) : null;
+    return selectedLocation ? <Marker position={selectedLocation} /> : null;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,15 +129,8 @@ const Checkout: React.FC = () => {
         specialInstructions: "",
       }));
 
-      // Calculate subtotal
-
-      // Calculate delivery fee (10%)
-
-      // Calculate total
       const total = subtotal + deliveryFee;
 
-      // Create order data object
-      // Update orderData to use selectedLocation
       const orderData = {
         items: orderItems,
         userId: user?.id || "",
@@ -153,7 +147,6 @@ const Checkout: React.FC = () => {
       console.log("Payment method", paymentMethod);
       // Handle different payment methods
       if (paymentMethod === "credit_card") {
-        // First call payment processing API
         try {
           const lineItems = createLineItems(items, deliveryFee);
 
@@ -223,7 +216,7 @@ const Checkout: React.FC = () => {
                 <MapPin size={20} className="mr-2 text-orange-500" />
                 Delivery Address
               </h2>
-              
+
               <div className="mb-4">
                 <label className="block text-gray-700 mb-2">
                   Select Location on Map
@@ -232,7 +225,7 @@ const Checkout: React.FC = () => {
                   <MapContainer
                     center={[selectedLocation.lat, selectedLocation.lng]}
                     zoom={13}
-                    style={{ height: '100%', width: '100%' }}
+                    style={{ height: "100%", width: "100%" }}
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -251,7 +244,9 @@ const Checkout: React.FC = () => {
                   type="text"
                   id="address"
                   className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  value={`Lat: ${selectedLocation.lat.toFixed(6)}, Lng: ${selectedLocation.lng.toFixed(6)}`}
+                  value={`Lat: ${selectedLocation.lat.toFixed(
+                    6
+                  )}, Lng: ${selectedLocation.lng.toFixed(6)}`}
                   readOnly
                 />
               </div>

@@ -8,12 +8,11 @@ import {
   Home,
   MapPin,
 } from "lucide-react";
-import { fetchOrderById } from "../api";
-import { Order } from "../types";
+import { findOrderById } from "../api/order";
 
 const OrderTracking: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,19 +22,19 @@ const OrderTracking: React.FC = () => {
 
       try {
         setLoading(true);
-        const orderData = await fetchOrderById(orderId);
+        const orderData = await findOrderById(orderId);
 
         if (!orderData) {
           setError("Order not found");
           return;
         }
-
+        console.log(orderData);
         setOrder(orderData);
         setError(null);
 
         // Poll for updates every 10 seconds
         const interval = setInterval(async () => {
-          const updatedOrder = await fetchOrderById(orderId);
+          const updatedOrder = await findOrderById(orderId);
           if (updatedOrder) {
             setOrder(updatedOrder);
 
@@ -58,8 +57,8 @@ const OrderTracking: React.FC = () => {
     loadOrder();
   }, [orderId]);
 
-  const getStatusStep = (status: Order["status"]) => {
-    switch (status) {
+  const getStatusStep = (status: string) => {
+    switch (status.toLowerCase()) {
       case "pending":
         return 0;
       case "confirmed":
@@ -78,6 +77,15 @@ const OrderTracking: React.FC = () => {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const formatCoordinates = (coords: string) => {
+    // If it's a valid coordinate string, you might want to display it differently
+    // or integrate with a map service
+    if (coords && coords.includes(",")) {
+      return "Location coordinates available";
+    }
+    return coords || "No address provided";
   };
 
   if (loading) {
@@ -111,7 +119,7 @@ const OrderTracking: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-semibold">{order.restaurantName}</h2>
+            <h2 className="text-xl font-semibold">Restaurant Order</h2>
             <p className="text-gray-500">
               Order #{order.id.substring(order.id.length - 6)}
             </p>
@@ -120,11 +128,10 @@ const OrderTracking: React.FC = () => {
             <p className="text-gray-500">
               Ordered at {formatTime(order.createdAt)}
             </p>
-            {order.estimatedDeliveryTime && (
-              <p className="font-medium">
-                Estimated delivery: {formatTime(order.estimatedDeliveryTime)}
-              </p>
-            )}
+            <p className="text-gray-500">
+              Payment: {order.paymentMethod.toUpperCase()} (
+              {order.paymentStatus})
+            </p>
           </div>
         </div>
 
@@ -195,23 +202,31 @@ const OrderTracking: React.FC = () => {
             <MapPin size={18} className="mr-2 text-orange-500" />
             Delivery Address
           </h3>
-          <p className="text-gray-700">{order.deliveryAddress}</p>
+          <p className="text-gray-700">
+            {formatCoordinates(order.deliveryAddress)}
+          </p>
+          {order.deliveryInstructions && (
+            <p className="text-gray-600 mt-1">
+              <span className="font-medium">Instructions:</span>{" "}
+              {order.deliveryInstructions}
+            </p>
+          )}
         </div>
 
         <div>
           <h3 className="font-semibold mb-2">Order Items</h3>
           <div className="space-y-2">
-            {order.items.map((item) => (
+            {order.items.map((item: any) => (
               <div key={item.id} className="flex justify-between">
                 <span>
-                  {item.quantity}x {item.name}
+                  {item.quantity}x {item.name || item.itemId}
                 </span>
                 <span>${(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
             <div className="border-t pt-2 mt-2 font-semibold flex justify-between">
               <span>Total</span>
-              <span>${order.total.toFixed(2)}</span>
+              <span>${order.totalAmount.toFixed(2)}</span>
             </div>
           </div>
         </div>
