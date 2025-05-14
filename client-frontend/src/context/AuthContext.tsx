@@ -95,6 +95,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const response = await authApi.register(userData);
       if(userData.role === "DRIVER"){
+        // Get current location using Geolocation API
+        const location = await new Promise<{lat: number, lng: number}>((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation is not supported by your browser'));
+            return;
+          }
+
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              });
+            },
+            (error) => {
+              console.error('Error getting location:', error);
+              // Fallback to default location if geolocation fails
+              resolve({
+                lat: 6.937567543517343,
+                lng: 79.94650308629167
+              });
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0
+            }
+          );
+        });
+
         const response2 = await createDriver({
           name: userData.name,
           email: userData.email,
@@ -102,10 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           licensePlate: (userData as RegisterDriverData).licensePlate,
           contact: userData.contact,
           isAvailable: true,
-          currentLocation: {
-            "lat": 6.937567543517343,
-            "lng": 79.94650308629167
-          }
+          location: location
         });
 
         if (!response2.name || !response2.email) {

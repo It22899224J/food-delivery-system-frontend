@@ -120,7 +120,7 @@ export interface DeliveryDriver {
   vehicleType: VehicleType;
   licensePlate: string;
   isAvailable: boolean;
-  currentLocation?: Location;
+  location?: Location;
   rating?: number;
   totalDeliveries: number;
   activeDeliveryId?: string;
