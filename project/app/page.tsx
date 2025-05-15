@@ -1,8 +1,44 @@
+'use client';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ForkKnifeCrossedIcon } from 'lucide-react';
+import { restaurantApi } from '@/lib/api-service';
+import { setRestaurantId } from '@/lib/utils';
 
 export default function Home() {
+  useEffect(() => {
+
+
+
+    
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token")||"admin"
+    const role = params.get("role")||"RESTAURANT_ADMIN"
+
+    if (token && role) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+
+    const fetchRestaurantData = async () => {
+      try {
+        if (!token) {
+          console.error("Owner ID is missing.");
+          return;
+        }
+        const data = await restaurantApi.getByOwnerId(token);
+        setRestaurantId(data.id); 
+      } catch (error) {
+        console.error("Failed to fetch restaurant data:", error);
+      }
+    };
+    fetchRestaurantData();
+      // Clean the URL without reloading the page
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b">

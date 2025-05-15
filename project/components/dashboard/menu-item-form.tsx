@@ -30,6 +30,11 @@ export const EditMenuItemDialog = ({
   item,
   onSave,
 }: EditMenuItemDialogProps) => {
+
+
+
+  const restaurantId = localStorage.getItem("restaurantId") || item.restaurantId;
+
   const [formData, setFormData] = useState<
     Omit<MenuItem, "createdAt" | "updatedAt">
   >({
@@ -43,6 +48,7 @@ export const EditMenuItemDialog = ({
     popular: item.popular,
     allergies: [...item.allergies],
     dietary: [...item.dietary],
+    restaurantId: restaurantId,
   });
 
   const [newAllergy, setNewAllergy] = useState("");

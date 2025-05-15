@@ -5,8 +5,10 @@ import { DollarSign, ShoppingCart, Utensils, TrendingUp, Clock } from 'lucide-re
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { PopularItems } from '@/components/dashboard/popular-items';
+import { use } from 'react';
 
 export default function DashboardPage() {
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between gap-4">

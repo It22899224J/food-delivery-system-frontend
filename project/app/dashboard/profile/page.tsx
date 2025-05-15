@@ -71,7 +71,8 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function ProfilePage() {
   const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
   const [newCuisine, setNewCuisine] = useState("");
-  const restaurantId = "cma2nyo8u0000lh2g3ftxhdrx"; 
+  const ownerId = localStorage.getItem("token"); 
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [position, setPosition] = useState<{ lat: number; lng: number }>({
     lat: 6.9271,
     lng: 79.8585,
@@ -81,8 +82,13 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchRestaurantData() {
       try {
-        const data = await restaurantApi.getById(restaurantId);
+        if (!ownerId) {
+          console.error("Owner ID is missing.");
+          return;
+        }
+        const data = await restaurantApi.getByOwnerId(ownerId);
         setRestaurantId(data.id); 
+        setRestaurantId(data.id);
         form.reset(data); 
         form.setValue(
           "position",
@@ -102,7 +108,7 @@ export default function ProfilePage() {
     }
 
     fetchRestaurantData();
-  }, [restaurantId]);
+  }, [ownerId]);
 
   async function fetchAddressFromCoords(lat: number, lng: number) {
     const response = await fetch(
@@ -128,7 +134,11 @@ export default function ProfilePage() {
       cuisineTypes,
       location: position,
     });
-    restaurantApi.update(restaurantId, data);
+    if (restaurantId) {
+      restaurantApi.update(restaurantId, data);
+    } else {
+      console.error("Cannot update: restaurantId is null.");
+    }
   }
 
   const addCuisine = () => {
