@@ -4,7 +4,7 @@ import { Facebook, Instagram, Twitter } from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-100 pt-12 pb-6">
+    <footer className="pt-12 pb-6">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row mb-8">
           {/* Logo and Description */}
@@ -17,18 +17,6 @@ const Footer: React.FC = () => {
             <p className="text-sm text-gray-600 mb-4 max-w-md">
               Company © 2023 OrderLK. Registered with major UK companies.
             </p>
-            <div className="flex gap-2">
-              <img
-                src="/api/placeholder/100/32"
-                alt="App Store"
-                className="h-8"
-              />
-              <img
-                src="/api/placeholder/100/32"
-                alt="Google Play"
-                className="h-8"
-              />
-            </div>
           </div>
 
           {/* Newsletter and Links */}
@@ -37,7 +25,7 @@ const Footer: React.FC = () => {
               {/* Newsletter */}
               <div className="col-span-1 md:col-span-1">
                 <h3 className="font-medium mb-4">
-                  Get Exclusive Deals in your inbox
+                  Get Exclusive Deals
                 </h3>
                 <div className="flex">
                   <input

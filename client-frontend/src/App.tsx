@@ -1,11 +1,4 @@
-import React, { useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { ShoppingCart, User } from "lucide-react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -16,58 +9,52 @@ import Checkout from "./components/Checkout";
 import OrderTracking from "./components/OrderTracking";
 import Login from "./components/Login";
 import DriverDashboard from "./components/driver/DriverDashboard";
-import DriverLogin from "./components/driver/DriverLogin";
 import OrderHistory from "./components/OrderHistory";
+import Profile from "./components/Profile";
 
-// Context
-import { CartProvider } from "./context/CartContext";
-import { AuthProvider } from "./context/AuthContext";
-
-// Types
-import { Restaurant, MenuItem } from "./types";
 import OrderSuccess from "./components/OrderSuccess";
 import AllRestaurants from "./components/AllRestaurants";
+import { useAuth } from "./context/AuthContext";
+import Register from "./components/Register";
+import { useEffect } from "react";
 import TrackMyOrder from "./components/TrackMyOrder";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isDriver, setIsDriver] = useState(false);
+  const { isDriver, user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // debugger;
+    if (isAuthenticated && user?.role === "RESTAURANT_ADMIN") {
+      window.open("http://localhost:3000", "_blank");
+    }
+  }, [isAuthenticated, user]);
 
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8">
-              <Routes>
-                <Route path="/" element={<RestaurantList />} />
-                <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/tracking/:orderId" element={<OrderTracking />} />
-                <Route path="/track-order" element={<TrackMyOrder />} />
-                <Route path="/order/success" element={<OrderSuccess />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/all-restaurants" element={<AllRestaurants />} />
-                <Route path="/driver/login" element={<DriverLogin />} />
-                <Route
-                  path="/driver/dashboard"
-                  element={
-                    isDriver ? (
-                      <DriverDashboard />
-                    ) : (
-                      <Navigate to="/driver/login" />
-                    )
-                  }
-                />
-                <Route path="/order-history" element={<OrderHistory />} />
-              </Routes>
-            </main>
-          </div>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <main className="container mx-auto px-4 py-8">
+        <Routes>
+          <Route path="/" element={<RestaurantList />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/track-order" element={<TrackMyOrder />} />
+          <Route path="/tracking/:orderId" element={<OrderTracking />} />
+          <Route path="/order/success" element={<OrderSuccess />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/all-restaurants" element={<AllRestaurants />} />
+          <Route
+            path="/driver/dashboard"
+            element={
+              isDriver ? <DriverDashboard /> : <Navigate to="/driver/login" />
+            }
+          />
+          <Route path="/order-history" element={<OrderHistory />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 

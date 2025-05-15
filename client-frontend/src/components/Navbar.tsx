@@ -7,7 +7,6 @@ import {
   X,
   LogOut,
   LayoutDashboard,
-  Coffee,
   History,
   Heart,
   Truck,
@@ -113,6 +112,14 @@ const Navbar = () => {
                   <span className="hidden sm:inline">{user?.name}</span>
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-10 opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all duration-300 origin-top-right">
+                  <Link
+                    to="/profile"
+                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <User size={16} className="mr-2 text-gray-600" />
+                    Profile
+                  </Link>
                   <Link
                     to="/order-history"
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
