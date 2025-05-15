@@ -48,7 +48,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" asChild>
-              <Link href="/login">Login</Link>
+              <Link href="http://localhost:5173/login">Login</Link>
             </Button>
           </div>
         </div>

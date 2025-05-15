@@ -23,9 +23,10 @@ function App() {
   const { isDriver, user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // debugger;
+    const token = localStorage.getItem("token");
+
     if (isAuthenticated && user?.role === "RESTAURANT_ADMIN") {
-      window.open("http://localhost:3000", "_blank");
+      window.open(`http://localhost:2000?token=${token}&role=RESTAURANT_ADMIN`, "_blank");
     }
   }, [isAuthenticated, user]);
 
