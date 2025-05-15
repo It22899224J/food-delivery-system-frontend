@@ -120,22 +120,26 @@ const Navbar = () => {
                     <User size={16} className="mr-2 text-gray-600" />
                     Profile
                   </Link>
-                  <Link
-                    to="/order-history"
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <History size={16} className="mr-2 text-gray-600" />
-                    My Orders
-                  </Link>
-                  <Link
-                    to="/favorites"
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Heart size={16} className="mr-2 text-gray-600" />
-                    Favorites
-                  </Link>
+                  {!isDriver && (
+                   <>
+                     <Link
+                        to="/order-history"
+                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <History size={16} className="mr-2 text-gray-600" />
+                        My Orders
+                      </Link>
+                      <Link
+                        to="/favorites"
+                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Heart size={16} className="mr-2 text-gray-600" />
+                        Favorites
+                      </Link>
+                   </>
+                   )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
