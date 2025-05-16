@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/form";
 import { restaurantApi } from "@/lib/api-service";
 import Link from "next/link";
+import { extractUserInfoFromJWT } from "@/lib/utils";
 
 // Load MapPicker dynamically
 const MapPicker = dynamic(() => import("@/components/ui/map-picker"), {
@@ -77,8 +78,14 @@ export default function RegisterPage() {
     lat: 6.9271,
     lng: 79.8585,
   });
-  const resturantAdminId = localStorage.getItem("token") || "12345666";
+  const token = localStorage.getItem("token");
 
+  const resturantAdminId = extractUserInfoFromJWT(token || "")?.id;
+  if (!resturantAdminId) {
+    console.error("Owner ID is missing.");
+    return null;
+  }
+  
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationFormSchema),
     defaultValues: {

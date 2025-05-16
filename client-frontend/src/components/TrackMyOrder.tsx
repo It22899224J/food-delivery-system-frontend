@@ -3,6 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { findOrdersByUser } from "../api/order";
 import { useAuth } from "../context/AuthContext";
 import { Clock, MapPin, ChevronRight } from "lucide-react";
+import { restaurantApi } from "../api/restaurant";
+
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: string;
+  category?: string;
+}
 
 const TrackMyOrder: React.FC = () => {
   const navigate = useNavigate();
@@ -10,6 +20,9 @@ const TrackMyOrder: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [menuItemsMap, setMenuItemsMap] = useState<Record<string, MenuItem>>(
+    {}
+  );
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -39,6 +52,11 @@ const TrackMyOrder: React.FC = () => {
     }
   };
 
+  // Function to get menu item name
+  const getMenuItemName = (itemId: string) => {
+    return menuItemsMap[itemId]?.name || `Item ${itemId}`;
+  };
+
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user || !user.id) {
@@ -57,6 +75,32 @@ const TrackMyOrder: React.FC = () => {
 
         // Get all orders regardless of payment status
         setOrders(response);
+
+        // Fetch menu items for each restaurant
+        const restaurantIds = [
+          ...new Set(response.map((order) => order.restaurantId)),
+        ];
+        const menuItemsData: Record<string, MenuItem> = {};
+
+        for (const restaurantId of restaurantIds) {
+          try {
+            const restaurantData = await restaurantApi.getRestaurantById(
+              restaurantId
+            );
+            if (restaurantData && restaurantData.menuItems) {
+              restaurantData.menuItems.forEach((item: MenuItem) => {
+                menuItemsData[item.id] = item;
+              });
+            }
+          } catch (err) {
+            console.error(
+              `Error fetching menu items for restaurant ${restaurantId}:`,
+              err
+            );
+          }
+        }
+
+        setMenuItemsMap(menuItemsData);
       } catch (err) {
         console.error("Error fetching orders:", err);
         setError("Failed to load your orders. Please try again later.");
@@ -68,7 +112,20 @@ const TrackMyOrder: React.FC = () => {
     fetchOrders();
   }, [user]);
 
-  const handleTrackOrder = (orderId: string) => {
+  const handleTrackOrder = (orderId: string, items: any[]) => {
+    // Create a serialized version of the order items with their names
+    const itemsWithNames = items.map(item => ({
+      id: item.id,
+      itemId: item.itemId,
+      name: getMenuItemName(item.itemId),
+      quantity: item.quantity,
+      price: item.price
+    }));
+    
+    // Store the items in sessionStorage to access them on the tracking page
+    sessionStorage.setItem('trackingOrderItems', JSON.stringify(itemsWithNames));
+    
+    // Navigate to the tracking page
     navigate(`/tracking/${orderId}`);
   };
 
@@ -162,7 +219,7 @@ const TrackMyOrder: React.FC = () => {
                             <span className="font-medium mr-2">
                               {item.quantity}x
                             </span>
-                            <span>{item.name || `Item ${item.itemId}`}</span>
+                            <span>{getMenuItemName(item.itemId)}</span>
                           </div>
                           <span>
                             ${(item.price * item.quantity).toFixed(2)}
@@ -188,7 +245,7 @@ const TrackMyOrder: React.FC = () => {
 
                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
                   <button
-                    onClick={() => handleTrackOrder(order.id)}
+                    onClick={() => handleTrackOrder(order.id, order.items)}
                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                   >
                     Track My Order

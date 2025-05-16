@@ -69,6 +69,8 @@ export const EditMenuItemDialog = ({
     }));
   };
 
+
+
   const handleSwitchChange = (name: string, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
@@ -76,21 +78,44 @@ export const EditMenuItemDialog = ({
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create a preview URL for the image
-      const imageUrl = URL.createObjectURL(file);
-      setImagePreview(imageUrl);
+const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-      // In a real application, you would upload the image to a server
-      // and get back a URL. For now, we'll just use the file name.
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const img = new Image();
+    img.src = reader.result as string;
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const size = 512; // Set your square size here
+
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) return;
+
+      // Crop the image to a square from the center
+      const minSide = Math.min(img.width, img.height);
+      const sx = (img.width - minSide) / 2;
+      const sy = (img.height - minSide) / 2;
+
+      ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+      const base64Image = canvas.toDataURL("image/jpeg", 0.9); 
+      setImagePreview(base64Image);
       setFormData((prev) => ({
         ...prev,
-        image: imageUrl, // In production, this would be the URL from your server
+        image: base64Image,
       }));
-    }
+    };
   };
+
+  reader.readAsDataURL(file);
+};
+
 
   const removeImage = () => {
     setImagePreview(null);
@@ -258,7 +283,7 @@ export const EditMenuItemDialog = ({
           </div>
 
           {/* Allergies section */}
-          <div className="grid grid-cols-4 items-start gap-4">
+          {/* <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right pt-2 font-medium">Allergies</Label>
             <div className="col-span-3">
               <div className="flex flex-wrap gap-2 mb-3 min-h-8">
@@ -298,10 +323,10 @@ export const EditMenuItemDialog = ({
                 </Button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Dietary section */}
-          <div className="grid grid-cols-4 items-start gap-4">
+          {/* <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right pt-2 font-medium">Dietary</Label>
             <div className="col-span-3">
               <div className="flex flex-wrap gap-2 mb-3 min-h-8">
@@ -341,7 +366,7 @@ export const EditMenuItemDialog = ({
                 </Button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Options section */}
           <div className="grid grid-cols-4 items-center gap-4">

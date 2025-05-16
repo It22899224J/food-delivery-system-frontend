@@ -32,7 +32,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { restaurantApi } from "@/lib/api-service";
-import { setRestaurantId } from "@/lib/utils";
+import { extractUserInfoFromJWT, setRestaurantId } from "@/lib/utils";
 
 // Load MapPicker dynamically
 const MapPicker = dynamic(() => import("@/components/ui/map-picker"), {
@@ -71,7 +71,8 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function ProfilePage() {
   const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
   const [newCuisine, setNewCuisine] = useState("");
-  const ownerId = localStorage.getItem("token"); 
+  const token = localStorage.getItem("token"); 
+  const ownerId = token ? extractUserInfoFromJWT(token)?.id : undefined;
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [position, setPosition] = useState<{ lat: number; lng: number }>({
     lat: 6.9271,

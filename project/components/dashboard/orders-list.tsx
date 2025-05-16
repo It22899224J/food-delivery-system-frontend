@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,7 +27,7 @@ import {
   ArrowRight,
   Phone
 } from 'lucide-react';
-import { ordersApi } from '@/lib/api-service';
+import { foodItemApi, ordersApi } from '@/lib/api-service';
 
 
 interface OrdersListProps {
@@ -44,6 +44,9 @@ export function OrdersList({ orders }: OrdersListProps) {
   const [currentOrderId, setCurrentOrderId] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
   const restaurantId = localStorage.getItem("restaurantId");
+  const [itemDetails, setItemDetails] = useState<Record<string, { name: string; image: string }>>({});
+
+
 
   const updateStatus = async (id: string, status: OrderStatus) => {
     setIsUpdating(true);
@@ -150,6 +153,35 @@ export function OrdersList({ orders }: OrdersListProps) {
   };
 
   const orderDetail = getOrderDetail();
+
+    useEffect(() => {
+    const fetchItemDetails = async () => {
+      if (!orderDetail) return;
+
+      const uniqueIds = Array.from(new Set(orderDetail.items.map(item => item.itemId)));
+
+      try {
+        const results = await Promise.all(
+          uniqueIds.map(async (id) => {
+            const data = await foodItemApi.getById(id);
+            return { id, name: data.name, image: data.image };
+          })
+        );
+
+        const detailsMap: Record<string, { name: string; image: string }> = {};
+        results.forEach(item => {
+          detailsMap[item.id] = { name: item.name, image: item.image };
+        });
+
+        console.log('Fetched item details:', detailsMap);
+        setItemDetails(detailsMap);
+      } catch (error) {
+        console.error('Failed to fetch one or more food items:', error);
+      }
+    };
+
+    fetchItemDetails();
+  }, [orderDetail]);
 
   return (
     <>
@@ -271,7 +303,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                                   handleStatusUpdate(order.id, nextStatus);
                                 }
                               }}
-                              disabled={isUpdating}
+                              disabled={isUpdating|| order.status === 'READY_FOR_PICKUP' && order.deliveryPersonnelId === null}
                             >
                               <ArrowRight className="h-4 w-4" />
                               {(() => {
@@ -426,35 +458,48 @@ export function OrdersList({ orders }: OrdersListProps) {
             <div>
               <h3 className="font-medium mb-2">Order Items</h3>
               <div className="border rounded-md divide-y">
-                {orderDetail.items.map((item) => (
-                  <div key={item.id} className="p-3 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 bg-muted rounded-md flex items-center justify-center">
-                        <Utensils className="h-4 w-4 text-muted-foreground" />
+                {orderDetail.items.map((item) => {
+                  const itemData = itemDetails[item.itemId]; // fetched data: { name, image }
+
+                  return (
+                    <div key={item.id} className="p-3 flex justify-between items-center gap-4 sm:gap-6 flex-wrap sm:flex-nowrap">
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        {itemData?.image ? (
+                          <img
+                            src={itemData.image}
+                            alt={itemData.name}
+                            className="h-12 w-12 sm:h-14 sm:w-14 rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 sm:h-14 sm:w-14 bg-muted rounded-md flex items-center justify-center">
+                            <Utensils className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{itemData?.name || 'Loading...'}</p>
+                          <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                      <div className="text-right ml-auto">
+                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
+
             
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>${orderDetail.totalAmount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
+              {/* <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery Fee</span>
                 <span>${orderDetail.deliveryFee.toFixed(2)}</span>
-              </div>
+              </div> */}
             </div>
             
             <DialogFooter className="gap-2 sm:gap-0">
@@ -480,7 +525,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                       setOrderDetailId(null);
                     }
                   }}
-                  disabled={isUpdating}
+                  disabled={isUpdating || orderDetail.status === 'READY_FOR_PICKUP' && orderDetail.deliveryPersonnelId === null}
                 >
                   {isUpdating ? 'Processing...' : `Mark as ${formatStatusLabel(getNextStatus(orderDetail.status as OrderStatus) || '')}`}
                 </Button>

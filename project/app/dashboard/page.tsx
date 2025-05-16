@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -5,9 +6,58 @@ import { DollarSign, ShoppingCart, Utensils, TrendingUp, Clock } from 'lucide-re
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { PopularItems } from '@/components/dashboard/popular-items';
-import { use } from 'react';
+import {useEffect, useState } from 'react';
+import { ordersApi, restaurantApi } from '@/lib/api-service';
+import { extractUserInfoFromJWT, setRestaurantId } from '@/lib/utils';
+import { Order, Restaurant } from '@/types';
 
 export default function DashboardPage() {
+
+
+const  restaurantId = localStorage.getItem("restaurantId");
+const [orders, setOrders] = useState<Order[]>([]);
+const [restaurantDetails, setRestaurantDetails] = useState<Restaurant>();
+
+
+  const token = localStorage.getItem("token")
+    useEffect(() => {
+      
+      const fetchRestaurantData = async () => {
+        try {
+          if (!token) {
+            console.error("Owner ID is missing.");
+            return;
+          }
+          const ownerId = extractUserInfoFromJWT(token)?.id;
+          if (!ownerId) {
+            console.error("Owner ID is missing.");
+            return;
+          }
+          const data = await restaurantApi.getByOwnerId(ownerId);
+          setRestaurantId(data.id); 
+          setRestaurantDetails(data);
+        } catch (error) {
+          console.error("Failed to fetch restaurant data:", error);
+        }
+      };
+      fetchRestaurantData();
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+            const fetchOrderData = async () => {
+      try {
+        if (!restaurantId) {
+          console.error("Restaurant ID is missing.");
+          return;
+        }
+        const data = await ordersApi.getByRestaurantId(restaurantId);
+        setOrders(data);
+      } catch (error) {
+        console.error("Failed to fetch restaurant data:", error);
+      }
+    };
+    fetchOrderData();
+      
+    }, []);
 
   return (
     <div className="space-y-6">
@@ -26,7 +76,7 @@ export default function DashboardPage() {
                   <CardTitle>Revenue Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <OverviewChart />
+                  <OverviewChart  orders={orders}/>
                 </CardContent>
               </Card>
               <Card className="col-span-3">
@@ -37,7 +87,7 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RecentOrders />
+                  <RecentOrders orders={orders} />
                 </CardContent>
               </Card>
             </div>
@@ -181,7 +231,7 @@ export default function DashboardPage() {
             <CardDescription>Your top selling menu items</CardDescription>
           </CardHeader>
           <CardContent>
-            <PopularItems />
+            <PopularItems items={restaurantDetails?.menuItems ?? []}/>
           </CardContent>
         </Card>
       </div>

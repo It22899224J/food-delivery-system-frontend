@@ -7,20 +7,16 @@ import { restaurantApi } from '@/lib/api-service';
 import { setRestaurantId } from '@/lib/utils';
 
 export default function Home() {
-  useEffect(() => {
-
-
-
-    
-
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token")||"admin"
+  const params = new URLSearchParams(window.location.search);
+    const token = params.get("token")
     const role = params.get("role")||"RESTAURANT_ADMIN"
 
     if (token && role) {
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
-
+    }
+  useEffect(() => {
+    
     const fetchRestaurantData = async () => {
       try {
         if (!token) {
@@ -36,7 +32,7 @@ export default function Home() {
     fetchRestaurantData();
       // Clean the URL without reloading the page
       window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    
   }, []);
 
   return (

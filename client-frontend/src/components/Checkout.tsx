@@ -9,7 +9,6 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -164,7 +163,6 @@ const Checkout: React.FC = () => {
           // Call the payment processing API
           const paymentResponse = await processCardPayment(paymentData);
 
-          console.log("Payment response:", paymentResponse);
           localStorage.setItem("pendingOrder", JSON.stringify(orderData));
           if (paymentResponse.url != null) {
             window.location.href = paymentResponse.url;

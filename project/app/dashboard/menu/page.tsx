@@ -34,7 +34,7 @@ import {
 import { MenuItem, MenuCategory } from "@/types";
 import { MenuItemCard } from "@/components/dashboard/menu-item-card";
 import { CreateMenuItemDialog } from "@/components/dashboard/menu-item-create-form";
-import { foodItemApi } from "@/lib/api-service";
+import { foodItemApi, restaurantApi } from "@/lib/api-service";
 import { getRestaurantId } from "@/lib/utils";
 
 // Sample menu categories and items
@@ -67,7 +67,7 @@ const sampleCategories: MenuCategory[] = [
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const restaurantId = "cma2nyo8u0000lh2g3ftxhdrx";
+  const restaurantId = localStorage.getItem("restaurantId");
   const [categories, setCategories] =
     useState<MenuCategory[]>(sampleCategories);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -79,8 +79,11 @@ export default function MenuPage() {
     const fetchMenuItems = async () => {
       try {
         setIsLoading(true);
-        const items = await foodItemApi.getAll();
-        setMenuItems(items);
+        if (!restaurantId) {
+          throw new Error("No restaurantId found in localStorage");
+        }
+        const items = await restaurantApi.getById(restaurantId);
+        setMenuItems(items.menuItems);
       } catch (error) {
         console.error("Failed to fetch menu items:", error);
       } finally {
@@ -149,7 +152,7 @@ export default function MenuPage() {
       formData.append("categoryId", item.categoryId);
       formData.append("available", (!item.available).toString());
       formData.append("popular", item.popular.toString());
-      formData.append("restaurantId", restaurantId.toString());
+      formData.append("restaurantId", (restaurantId ?? "").toString());
 
       if (item.allergies) {
         item.allergies.forEach((allergy) => {
@@ -208,6 +211,33 @@ export default function MenuPage() {
       console.error("Failed to create menu item:", error);
     }
   };
+
+  const handleUpdateItem = async (updatedItem: MenuItem) => {
+
+    console.log("Updated item:", updatedItem);
+  try {
+            const formData = new FormData();
+            Object.entries(updatedItem).forEach(([key, value]) => {
+              if (key === "image" && value instanceof File) {
+                formData.append("image", value);
+              } else if (Array.isArray(value)) {
+                value.forEach((item) => {
+                  formData.append(key, item);
+                });
+              } else if (value !== null && value !== undefined) {
+                formData.append(key, value.toString());
+              }
+            });
+    const savedItem = await foodItemApi.update(updatedItem.id, formData);
+
+    setMenuItems((items) =>
+      items.map((item) => (item.id === savedItem.id ? savedItem : item))
+    );
+  } catch (error) {
+    console.error("Failed to update menu item:", error);
+  }
+};
+
 
   return (
     <>
@@ -297,13 +327,8 @@ export default function MenuPage() {
                   key={item.id}
                   item={item}
                   onToggleAvailability={toggleItemAvailability}
-                  onUpdateItem={(updatedItem) => {
-                    setMenuItems((items) =>
-                      items.map((item) =>
-                        item.id === updatedItem.id ? updatedItem : item
-                      )
-                    );
-                  }}
+                  onUpdateItem={handleUpdateItem}
+                  onDeleteItem={handleDeleteItem}
                 />
               ))}
             </div>
@@ -333,13 +358,8 @@ export default function MenuPage() {
                       key={item.id}
                       item={item}
                       onToggleAvailability={toggleItemAvailability}
-                      onUpdateItem={(updatedItem) => {
-                        setMenuItems((items) =>
-                          items.map((item) =>
-                            item.id === updatedItem.id ? updatedItem : item
-                          )
-                        );
-                      }}
+                      onUpdateItem={handleUpdateItem}
+                      onDeleteItem={handleDeleteItem}
                     />
                   ))}
               </div>
@@ -363,7 +383,7 @@ export default function MenuPage() {
       <CreateMenuItemDialog
         open={isCreateDialogOpen}
         onOpenChange={() => setIsCreateDialogOpen(false)}
-        restaurantId={getRestaurantId() || restaurantId}
+        restaurantId={getRestaurantId() || restaurantId || ""}
         onSave={async (newItem) => {
           try {
             const formData = new FormData();
@@ -378,8 +398,6 @@ export default function MenuPage() {
                 formData.append(key, value.toString());
               }
             });
-
-            console.log("FormData for new item:", formData); // Debugging line
             const createdItem = await foodItemApi.create(formData);
             setMenuItems((items) => [...items, createdItem]);
             setIsCreateDialogOpen(false);

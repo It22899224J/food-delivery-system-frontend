@@ -77,36 +77,15 @@ export const menuApi = {
 
 // Orders endpoints
 export const ordersApi = {
-  getAll: (restaurantId: string, params: any = {}) =>
-    apiClient
-      .get(`/restaurants/${restaurantId}/orders`, { params })
-      .then((res) => res.data),
-
-  getById: (restaurantId: string, orderId: string) =>
-    apiClient
-      .get(`/restaurants/${restaurantId}/orders/${orderId}`)
-      .then((res) => res.data),
-
+  
   getByRestaurantId: (restaurantId: string) =>
-    apiOrderClient
-      .get(`/restaurant/${restaurantId}`)
+    apiClient
+      .get(`/restaurants/${restaurantId}/orders`)
       .then((res) => res.data),
 
   updateStatus: (id: string, updateStatusDto: any) =>
-    apiOrderClient
-      .patch(`/${id}/status`, updateStatusDto)
-      .then((res) => res.data),
-
-  acceptOrder: (restaurantId: string, orderId: string, estimatedTime: number) =>
     apiClient
-      .post(`/restaurants/${restaurantId}/orders/${orderId}/accept`, {
-        estimatedTime,
-      })
-      .then((res) => res.data),
-
-  rejectOrder: (restaurantId: string, orderId: string, reason: string) =>
-    apiClient
-      .post(`/restaurants/${restaurantId}/orders/${orderId}/reject`, { reason })
+      .put(`/restaurants/orders/${id}/status`, updateStatusDto)
       .then((res) => res.data),
 };
 

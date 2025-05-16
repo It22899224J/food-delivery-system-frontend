@@ -3,22 +3,15 @@
 import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
-
-// Sample data
-const data = [
-  { time: '00:00', orders: 4, revenue: 67 },
-  { time: '03:00', orders: 3, revenue: 41 },
-  { time: '06:00', orders: 7, revenue: 86 },
-  { time: '09:00', orders: 18, revenue: 215 },
-  { time: '12:00', orders: 25, revenue: 325 },
-  { time: '15:00', orders: 22, revenue: 280 },
-  { time: '18:00', orders: 28, revenue: 374 },
-  { time: '21:00', orders: 16, revenue: 204 },
-];
+import { Order} from '@/types';
 
 type ChartView = 'orders' | 'revenue';
+type Props = {
+  orders: Order[]
+}
+  export function OverviewChart({ orders: propData }: Props) {
 
-export function OverviewChart() {
+  const data = aggregateOrdersByTimeSlot(propData);
   const [mounted, setMounted] = useState(false);
   const [view, setView] = useState<ChartView>('revenue');
 
@@ -109,3 +102,35 @@ export function OverviewChart() {
     </div>
   );
 }
+
+function aggregateOrdersByTimeSlot(propData: Order[]) {
+  const slots: { [key: string]: { revenue: number; orders: number } } = {};
+
+  propData.forEach(order => {
+    const date = new Date(order.createdAt);
+    const hour = date.getHours();
+    const slotStartHour = Math.floor(hour / 3) * 3;
+    const slotLabel = `${slotStartHour.toString().padStart(2, '0')}:00`;
+
+    if (!slots[slotLabel]) {
+      slots[slotLabel] = { revenue: 0, orders: 0 };
+    }
+
+    slots[slotLabel].orders += 1;
+    slots[slotLabel].revenue += order.totalAmount ?? 0;
+  });
+
+  // Fill missing slots with zeroes for full 24-hour coverage
+  const result = Array.from({ length: 8 }, (_, i) => {
+    const label = `${(i * 3).toString().padStart(2, '0')}:00`;
+    return {
+      time: label,
+      orders: slots[label]?.orders || 0,
+      revenue: slots[label]?.revenue || 0,
+    };
+  });
+
+  return result;
+}
+
+
