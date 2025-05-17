@@ -1,6 +1,6 @@
-import axios from "axios";
+import api from './axios';
 
-const API_BASE_URL = "http://localhost:3000"; 
+const API_BASE_URL = "http://localhost:8089/restaurants"; 
 
 export const foodItemApi = {
   // Create a new food item
@@ -13,7 +13,7 @@ export const foodItemApi = {
       formData.append(key, foodItemData[key].toString());
     });
 
-    const response = await axios.post(`${API_BASE_URL}/food-items`, formData, {
+    const response = await api.post(`${API_BASE_URL}/food-items`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -23,13 +23,13 @@ export const foodItemApi = {
 
   // Get all food items
   getAllFoodItems: async () => {
-    const response = await axios.get(`${API_BASE_URL}/food-items`);
+    const response = await api.get(`${API_BASE_URL}/food-items`);
     return response.data;
   },
 
   // Get a single food item by ID
   getFoodItemById: async (id: string) => {
-    const response = await axios.get(`${API_BASE_URL}/food-items/${id}`);
+    const response = await api.get(`${API_BASE_URL}/food-items/${id}`);
     return response.data;
   },
 
@@ -48,7 +48,7 @@ export const foodItemApi = {
       }
     });
 
-    const response = await axios.put(
+    const response = await api.put(
       `${API_BASE_URL}/food-items/${id}`,
       formData,
       {
@@ -62,7 +62,7 @@ export const foodItemApi = {
 
   // Delete a food item
   deleteFoodItem: async (id: string) => {
-    const response = await axios.delete(`${API_BASE_URL}/food-items/${id}`);
+    const response = await api.delete(`${API_BASE_URL}/food-items/${id}`);
     return response.data;
   },
 };
@@ -70,25 +70,25 @@ export const foodItemApi = {
 export const restaurantApi = {
   // Create a new restaurant
   createRestaurant: async (restaurantData: any) => {
-    const response = await axios.post(`${API_BASE_URL}/restaurants`, restaurantData);
+    const response = await api.post(`${API_BASE_URL}/restaurants`, restaurantData);
     return response.data;
   },
 
   // Get all restaurants
   getAllRestaurants: async () => {
-    const response = await axios.get(`${API_BASE_URL}/restaurants`);
+    const response = await api.get(`${API_BASE_URL}/restaurants`);
     return response.data;
   },
 
   // Get a single restaurant by ID
   getRestaurantById: async (id: string) => {
-    const response = await axios.get(`${API_BASE_URL}/restaurants/${id}`);
+    const response = await api.get(`${API_BASE_URL}/restaurants/${id}`);
     return response.data;
   },
 
   // Update a restaurant
   updateRestaurant: async (id: string, updateData: any) => {
-    const response = await axios.put(
+    const response = await api.put(
       `${API_BASE_URL}/restaurants/${id}`,
       updateData
     );
@@ -97,7 +97,7 @@ export const restaurantApi = {
 
   // Delete a restaurant
   deleteRestaurant: async (id: string) => {
-    const response = await axios.delete(`${API_BASE_URL}/restaurants/${id}`);
+    const response = await api.delete(`${API_BASE_URL}/restaurants/${id}`);
     return response.data;
   },
 };

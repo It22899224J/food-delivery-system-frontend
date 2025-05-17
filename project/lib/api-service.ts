@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/";
-const API_URL_ORDER = "http://localhost:3004/";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8089/restaurants";
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -10,14 +9,24 @@ const apiClient = axios.create({
   },
 });
 
-const apiOrderClient = axios.create({
-  baseURL: API_URL_ORDER,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+// Request interceptor
+apiClient.interceptors.request.use(
+  (config) => {
+    // Get token from localStorage
+    const token = localStorage.getItem("token");
 
-// Restaurant profile endpoints
+    // If token exists, add it to request headers
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export const restaurantApi = {
   getAll: () => 
     apiClient.get('/restaurants').then((res) => res.data),

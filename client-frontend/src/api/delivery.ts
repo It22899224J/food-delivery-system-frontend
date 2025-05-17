@@ -1,12 +1,11 @@
 import api from "./axios";
-import axios from "axios";
 import { DeliveryDriver, Delivery, CreateDelivery, UpdateDelivery } from "../types";
 
-const DELIVERY_API_URL = "http://localhost:3002";
+const DELIVERY_API_URL = "http://localhost:8089/deliveries";
 
 // Create a new delivery
 export const createDelivery = async (createDeliveryDto: CreateDelivery): Promise<Delivery> => {
-  const response = await axios.post(`${DELIVERY_API_URL}/deliveries`, createDeliveryDto);
+  const response = await api.post(`${DELIVERY_API_URL}/deliveries`, createDeliveryDto);
   return response.data;
 };
 
@@ -30,7 +29,7 @@ export const updateDelivery = async (id: string, updateDto: UpdateDelivery): Pro
 
 // Driver endpoints
 export const createDriver = async (createDriverDto: Omit<DeliveryDriver, 'createdAt' | 'updatedAt' | 'totalDeliveries' | 'activeDeliveryId'>): Promise<DeliveryDriver> => {
-  const response = await axios.post(`${DELIVERY_API_URL}/drivers`, createDriverDto);
+  const response = await api.post(`${DELIVERY_API_URL}/drivers`, createDriverDto);
   return response.data;
 };
 

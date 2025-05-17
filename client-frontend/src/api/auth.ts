@@ -1,7 +1,7 @@
 import api from './axios';
 import { RegisterDriverData, RegisterUserData } from "../types";
 
-const API_BASE_URL = "http://localhost:3012"; 
+const API_BASE_URL = "http://localhost:8089/auth"; 
 
 export const authApi = {
   // Register a new user (customer, restaurant admin, or delivery personnel)

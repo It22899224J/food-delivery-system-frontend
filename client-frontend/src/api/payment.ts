@@ -1,9 +1,9 @@
-import axios from "axios";
+import api from './axios';
 
 export const processCardPayment = async (paymentData: any): Promise<any> => {
   try {
-    const response = await axios.post(
-      `http://localhost:3006/create-checkout`,
+    const response = await api.post(
+      `http://localhost:8089/payments/create-checkout`,
       paymentData
     );
     return response.data;
