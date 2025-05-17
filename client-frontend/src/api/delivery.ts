@@ -6,7 +6,7 @@ import {
   UpdateDelivery,
 } from "../types";
 
-const DELIVERY_API_URL = "http://localhost:8089/";
+const DELIVERY_API_URL = "http://localhost:8089";
 
 // Create a new delivery
 export const createDelivery = async (
