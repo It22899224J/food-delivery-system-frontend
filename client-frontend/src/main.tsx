@@ -9,7 +9,6 @@ import { BrowserRouter as Router } from "react-router-dom";
 import MenuItemsProvider from "./context/MenuItemsContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
     <Router>
       <AuthProvider>
         <CartProvider>
@@ -19,5 +18,4 @@ createRoot(document.getElementById("root")!).render(
         </CartProvider>
       </AuthProvider>
     </Router>
-  </StrictMode>
 );
