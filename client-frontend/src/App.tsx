@@ -18,6 +18,7 @@ import { useAuth } from "./context/AuthContext";
 import Register from "./components/Register";
 import { useEffect } from "react";
 import TrackMyOrder from "./components/TrackMyOrder";
+import Success from "./components/Success";
 
 function App() {
   const { isDriver, user, isAuthenticated } = useAuth();
@@ -26,7 +27,10 @@ function App() {
     const token = localStorage.getItem("token");
 
     if (isAuthenticated && user?.role === "RESTAURANT_ADMIN") {
-      window.open(`http://localhost:2000?token=${token}&role=RESTAURANT_ADMIN`, "_blank");
+      window.open(
+        `http://localhost:2000?token=${token}&role=RESTAURANT_ADMIN`,
+        "_blank"
+      );
     }
   }, [isAuthenticated, user]);
 
@@ -43,6 +47,7 @@ function App() {
           <Route path="/track-order" element={<TrackMyOrder />} />
           <Route path="/tracking/:orderId" element={<OrderTracking />} />
           <Route path="/order/success" element={<OrderSuccess />} />
+          <Route path="/orders/order-success" element={<Success />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/all-restaurants" element={<AllRestaurants />} />

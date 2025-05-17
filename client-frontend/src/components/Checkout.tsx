@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CreditCard, MapPin, ArrowLeft } from "lucide-react";
+import { CreditCard, MapPin, ArrowLeft, Banknote } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../api/order";
@@ -79,13 +79,14 @@ const Checkout: React.FC = () => {
   React.useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
-    } else if (items.length === 0) {
+    } else if (items.length === 0 && !isSubmitting) {
+      // Only navigate to cart if not currently submitting an order
       navigate("/cart");
     }
-  }, [isAuthenticated, items, navigate]);
+  }, [isAuthenticated, items, navigate, isSubmitting]);
 
   const [selectedLocation, setSelectedLocation] = useState({
-    lat: 6.927079, // Default to Colombo
+    lat: 6.927079,
     lng: 79.861244,
   });
 
@@ -105,8 +106,8 @@ const Checkout: React.FC = () => {
   }
 
   const [showModal, setShowModal] = useState(false);
-  const [loadingMessage] = useState("Finding drivers...");
-  const [orderSuccess] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Finding drivers...");
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,9 +122,9 @@ const Checkout: React.FC = () => {
       setError(null);
       setShowModal(true);
 
-      // Get restaurant info from first item (assuming all items are from same restaurant)
+      // Get restaurant info from first item
       const restaurantId = items[0]?.restaurantId;
-      const restaurantName = items[0]?.name.split(" ")[0]; // Simple way to get restaurant name
+      const restaurantName = items[0]?.name.split(" ")[0];
 
       // Convert CartItems to OrderItems
       const orderItems = items.map((item) => ({
@@ -180,18 +181,40 @@ const Checkout: React.FC = () => {
         }
       } else {
         // For cash payment, directly create the order
-        order = await createOrder(orderData);
-      }
+        try {
+          setLoadingMessage("Processing your cash order...");
+          order = await createOrder(orderData);
+          console.log("Order created:", order);
 
-      console.log("Order placed:", order);
-      // Clear cart and redirect to tracking page
-      clearCart();
+          // Set success state
+          setOrderSuccess(true);
+          setLoadingMessage("Order placed successfully!");
+
+          // First navigate to success page, then clear cart
+          // This prevents the brief redirection to cart
+          setTimeout(() => {
+            navigate(`/orders/order-success`);
+            // Clear cart after navigation is complete
+            setTimeout(() => {
+              clearCart();
+            }, 100);
+          }, 1500);
+        } catch (orderError) {
+          setShowModal(false);
+          console.error("Failed to create order:", orderError);
+          setError("Failed to place your order. Please try again.");
+          setIsSubmitting(false);
+        }
+      }
     } catch (err) {
       setShowModal(false);
       console.error("Failed to place order:", err);
       setError("Failed to place your order. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      if (paymentMethod !== "cash") {
+        setIsSubmitting(false);
+        setShowModal(false);
+      }
     }
   };
 
@@ -306,7 +329,10 @@ const Checkout: React.FC = () => {
                     onChange={() => setPaymentMethod("cash")}
                     className="mr-2"
                   />
-                  <label htmlFor="cash">Cash on Delivery</label>
+                  <label htmlFor="cash" className="flex items-center">
+                    <Banknote size={20} className="mr-2" />
+                    Cash on Delivery
+                  </label>
                 </div>
               </div>
             </div>
@@ -383,21 +409,29 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl text-center">
             {!orderSuccess ? (
               <>
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500 border-solid mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-800">{loadingMessage}</h3>
-                <p className="text-gray-600 mt-2">Please wait while we process your order...</p>
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {loadingMessage}
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  Please wait while we process your order...
+                </p>
               </>
             ) : (
               <>
                 <div className="text-green-500 text-5xl mb-4">✓</div>
-                <h3 className="text-xl font-semibold text-gray-800">{loadingMessage}</h3>
-                <p className="text-gray-600 mt-2">Redirecting you to your orders...</p>
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {loadingMessage}
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  Redirecting you to order details...
+                </p>
               </>
             )}
           </div>

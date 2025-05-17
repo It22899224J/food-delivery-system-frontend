@@ -1,11 +1,21 @@
 import api from "./axios";
-import { DeliveryDriver, Delivery, CreateDelivery, UpdateDelivery } from "../types";
+import {
+  DeliveryDriver,
+  Delivery,
+  CreateDelivery,
+  UpdateDelivery,
+} from "../types";
 
 const DELIVERY_API_URL = "http://localhost:8089/";
 
 // Create a new delivery
-export const createDelivery = async (createDeliveryDto: CreateDelivery): Promise<Delivery> => {
-  const response = await api.post(`${DELIVERY_API_URL}/deliveries`, createDeliveryDto);
+export const createDelivery = async (
+  createDeliveryDto: CreateDelivery
+): Promise<Delivery> => {
+  const response = await api.post(
+    `${DELIVERY_API_URL}/deliveries`,
+    createDeliveryDto
+  );
   return response.data;
 };
 
@@ -22,20 +32,36 @@ export const findDeliveryById = async (id: string): Promise<Delivery> => {
 };
 
 // Update delivery
-export const updateDelivery = async (id: string, updateDto: UpdateDelivery): Promise<Delivery> => {
-  const response = await api.patch(`${DELIVERY_API_URL}/deliveries/${id}`, updateDto);
+export const updateDelivery = async (
+  id: string,
+  updateDto: UpdateDelivery
+): Promise<Delivery> => {
+  const response = await api.patch(
+    `${DELIVERY_API_URL}/deliveries/${id}`,
+    updateDto
+  );
   return response.data;
 };
 
 // Driver endpoints
-export const createDriver = async (createDriverDto: Omit<DeliveryDriver, 'createdAt' | 'updatedAt' | 'totalDeliveries' | 'activeDeliveryId'>): Promise<DeliveryDriver> => {
-  const response = await api.post(`${DELIVERY_API_URL}/drivers`, createDriverDto);
+export const createDriver = async (
+  createDriverDto: Omit<
+    DeliveryDriver,
+    "createdAt" | "updatedAt" | "totalDeliveries" | "activeDeliveryId"
+  >
+): Promise<DeliveryDriver> => {
+  const response = await api.post(
+    `${DELIVERY_API_URL}/drivers`,
+    createDriverDto
+  );
   return response.data;
 };
 
 // Get all drivers
-export const findAllDrivers = async (available?: boolean): Promise<DeliveryDriver[]> => {
-  const url = available 
+export const findAllDrivers = async (
+  available?: boolean
+): Promise<DeliveryDriver[]> => {
+  const url = available
     ? `${DELIVERY_API_URL}/drivers?available=true`
     : `${DELIVERY_API_URL}/drivers`;
   const response = await api.get(url);
@@ -49,30 +75,56 @@ export const findDriverById = async (id: string): Promise<DeliveryDriver> => {
 };
 
 // Update driver
-export const updateDriver = async (id: string, updateDto: Partial<DeliveryDriver>): Promise<DeliveryDriver> => {
-  const response = await api.patch(`${DELIVERY_API_URL}/drivers/${id}`, updateDto);
+export const updateDriver = async (
+  id: string,
+  updateDto: Partial<DeliveryDriver>
+): Promise<DeliveryDriver> => {
+  const response = await api.patch(
+    `${DELIVERY_API_URL}/drivers/${id}`,
+    updateDto
+  );
   return response.data;
 };
 
 // Update driver availability
-export const updateDriverAvailability = async (id: string, isAvailable: boolean): Promise<DeliveryDriver> => {
-  const response = await api.patch(`${DELIVERY_API_URL}/drivers/${id}/availability`, { isAvailable });
+export const updateDriverAvailability = async (
+  id: string,
+  isAvailable: boolean
+): Promise<DeliveryDriver> => {
+  const response = await api.patch(
+    `${DELIVERY_API_URL}/drivers/${id}/availability`,
+    { isAvailable }
+  );
   return response.data;
 };
 
 // Update driver location
-export const updateDriverLocation = async (id: string, location: { latitude: number; longitude: number }): Promise<DeliveryDriver> => {
-  const response = await api.patch(`${DELIVERY_API_URL}/drivers/${id}/location`, location);
+export const updateDriverLocation = async (
+  id: string,
+  location: { latitude: number; longitude: number }
+): Promise<DeliveryDriver> => {
+  const response = await api.patch(
+    `${DELIVERY_API_URL}/drivers/${id}/location`,
+    location
+  );
   return response.data;
 };
 
 // Get delivery by order ID
-export const findDeliveryByOrderId = async (orderId: string): Promise<Delivery> => {
-  const response = await api.get(`${DELIVERY_API_URL}/deliveries/orders/${orderId}`);
+export const findDeliveryByOrderId = async (
+  orderId: string
+): Promise<Delivery> => {
+  const response = await api.get(
+    `${DELIVERY_API_URL}/deliveries/orders/${orderId}`
+  );
   return response.data;
 };
 
-export const findDeliveryByDriverId = async (driverId: string): Promise<Delivery[]> => {
-  const response = await api.get(`${DELIVERY_API_URL}/deliveries/drivers/${driverId}`);
+export const findDeliveryByDriverId = async (
+  driverId: string
+): Promise<Delivery[]> => {
+  const response = await api.get(
+    `${DELIVERY_API_URL}/deliveries/drivers/${driverId}`
+  );
   return response.data;
 };
