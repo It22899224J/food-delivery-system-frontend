@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createOrder } from "../api/order";
 import { CheckCircle, Package, Home } from "lucide-react";
+import { useCart } from "../context/CartContext";
 
 const OrderSuccess: React.FC = () => {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const callApi = async () => {
@@ -38,6 +40,7 @@ const OrderSuccess: React.FC = () => {
         // If successful, clear the pendingOrder from localStorage
         localStorage.removeItem("pendingOrder");
         console.log("Pending order removed from localStorage.");
+        clearCart();
         setLoading(false);
       } catch (error) {
         console.error("Error calling API:", error);
