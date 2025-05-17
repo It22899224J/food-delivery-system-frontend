@@ -1,7 +1,7 @@
 import api from "./axios";
 import { DeliveryDriver, Delivery, CreateDelivery, UpdateDelivery } from "../types";
 
-const DELIVERY_API_URL = "http://localhost:8089/deliveries";
+const DELIVERY_API_URL = "http://localhost:8089/";
 
 // Create a new delivery
 export const createDelivery = async (createDeliveryDto: CreateDelivery): Promise<Delivery> => {
