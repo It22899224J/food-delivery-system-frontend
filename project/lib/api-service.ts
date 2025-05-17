@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8089/restaurants";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8089";
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -28,8 +28,7 @@ apiClient.interceptors.request.use(
 );
 
 export const restaurantApi = {
-  getAll: () => 
-    apiClient.get('/restaurants').then((res) => res.data),
+  getAll: () => apiClient.get("/restaurants").then((res) => res.data),
 
   getById: (restaurantId: string) =>
     apiClient.get(`/restaurants/${restaurantId}`).then((res) => res.data),
@@ -38,7 +37,7 @@ export const restaurantApi = {
     apiClient.get(`/restaurants/owner/${ownerId}`).then((res) => res.data),
 
   create: (data: any) =>
-    apiClient.post('/restaurants', data).then((res) => res.data),
+    apiClient.post("/restaurants", data).then((res) => res.data),
 
   update: (restaurantId: string, data: any) =>
     apiClient.put(`/restaurants/${restaurantId}`, data).then((res) => res.data),
@@ -86,7 +85,6 @@ export const menuApi = {
 
 // Orders endpoints
 export const ordersApi = {
-  
   getByRestaurantId: (restaurantId: string) =>
     apiClient
       .get(`/restaurants/${restaurantId}/orders`)
@@ -124,25 +122,56 @@ export const analyticsApi = {
 
 // Food items endpoints
 export const foodItemApi = {
-  getAll: () => 
-    apiClient.get('/food-items').then((res) => res.data),
+  getAll: () => apiClient.get("/food-items").then((res) => res.data),
 
   getById: (id: string) =>
     apiClient.get(`/food-items/${id}`).then((res) => res.data),
 
   create: (data: FormData) =>
-    apiClient.post('/food-items', data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then((res) => res.data),
+    apiClient
+      .post("/food-items", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res.data),
 
   update: (id: string, data: FormData) =>
-    apiClient.put(`/food-items/${id}`, data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then((res) => res.data),
+    apiClient
+      .put(`/food-items/${id}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res.data),
+
+  delete: (id: string) =>
+    apiClient.delete(`/food-items/${id}`).then((res) => res.data),
+};
+
+export const paymentApi = {
+  getAll: () => apiClient.get("/food-items").then((res) => res.data),
+
+  getById: (id: string) =>
+    apiClient.get(`/payments/restaurant/${id}`).then((res) => res.data),
+
+  create: (data: FormData) =>
+    apiClient
+      .post("/food-items", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res.data),
+
+  update: (id: string, data: FormData) =>
+    apiClient
+      .put(`/food-items/${id}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res.data),
 
   delete: (id: string) =>
     apiClient.delete(`/food-items/${id}`).then((res) => res.data),

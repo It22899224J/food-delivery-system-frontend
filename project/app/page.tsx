@@ -1,22 +1,23 @@
-'use client';
-import { useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, ForkKnifeCrossedIcon } from 'lucide-react';
-import { restaurantApi } from '@/lib/api-service';
-import { setRestaurantId } from '@/lib/utils';
+"use client";
+import { useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ForkKnifeCrossedIcon } from "lucide-react";
+import { restaurantApi } from "@/lib/api-service";
+import { setRestaurantId } from "@/lib/utils";
+import logoFood from "../images/logoFood.png";
+import Image from "next/image";
 
 export default function Home() {
   const params = new URLSearchParams(window.location.search);
-    const token = params.get("token")
-    const role = params.get("role")||"RESTAURANT_ADMIN"
+  const token = params.get("token");
+  const role = params.get("role") || "RESTAURANT_ADMIN";
 
-    if (token && role) {
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-    }
+  if (token && role) {
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
+  }
   useEffect(() => {
-    
     const fetchRestaurantData = async () => {
       try {
         if (!token) {
@@ -24,15 +25,14 @@ export default function Home() {
           return;
         }
         const data = await restaurantApi.getByOwnerId(token);
-        setRestaurantId(data.id); 
+        setRestaurantId(data.id);
       } catch (error) {
         console.error("Failed to fetch restaurant data:", error);
       }
     };
     fetchRestaurantData();
-      // Clean the URL without reloading the page
-      window.history.replaceState({}, document.title, window.location.pathname);
-    
+    // Clean the URL without reloading the page
+    window.history.replaceState({}, document.title, window.location.pathname);
   }, []);
 
   return (
@@ -40,13 +40,19 @@ export default function Home() {
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold">FoodHub</span>
+            <Image
+              src={logoFood}
+              alt="FoodHub Logo"
+              className="h-16 w-auto ml-5"
+              priority
+            />
           </div>
-          <div className="flex items-center gap-4">
+
+          {/* <div className="flex items-center gap-4">
             <Button variant="outline" asChild>
               <Link href="http://localhost:5173/login">Login</Link>
             </Button>
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -65,7 +71,11 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <Button size="lg" asChild className="m-2 bg-yellow-500 text-white hover:bg-yellow-600">
+          <Button
+            size="lg"
+            asChild
+            className="m-2 bg-yellow-500 text-white hover:bg-yellow-600"
+          >
             <Link href="/register">
               Register Restaurant
               <ForkKnifeCrossedIcon className="ml-2 h-4 w-4" />
