@@ -25,7 +25,7 @@ export function PopularItems({ items }: { items: MenuItem[] }) {
             <div className="text-sm text-muted-foreground">{item.createdAt} </div>
           </div>
           <div className="text-right">
-            <div className="font-medium">${item.price.toFixed(2)}</div>
+            <div className="font-medium">LKR {item.price.toFixed(2)}</div>
             {/* <div className={`text-xs flex items-center justify-end ${
               item.trend === 'up' ? 'text-green-500' : 'text-red-500'
             }`}>

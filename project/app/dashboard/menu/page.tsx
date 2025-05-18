@@ -93,7 +93,6 @@ export default function MenuPage() {
 
     const fetchCategories = async () => {
       // Assuming categories are fetched from a separate API endpoint
-      // Replace with actual API call when available
       setCategories([
         {
           id: "cat1",
@@ -165,10 +164,6 @@ export default function MenuPage() {
           formData.append("dietary", diet);
         });
       }
-
-      // Don't append the image if we're just toggling availability
-      // unless the API requires it every time
-
       const updatedItem = await foodItemApi.update(itemId, formData);
 
       setMenuItems((items) =>

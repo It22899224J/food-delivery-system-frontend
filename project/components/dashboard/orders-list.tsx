@@ -255,7 +255,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                         {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                       </td>
                       <td className="p-4 align-middle text-right font-medium">
-                        ${order.totalAmount.toFixed(2)}
+                        LKR {order.totalAmount.toFixed(2)}
                       </td>
                       <td className="p-4 align-middle">
                         <Badge className={cn("capitalize", getStatusBadgeStyles(order.status))}>
@@ -481,8 +481,8 @@ export function OrdersList({ orders }: OrdersListProps) {
                         </div>
                       </div>
                       <div className="text-right ml-auto">
-                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
+                        <p className="font-medium">LKR {(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">LKR {item.price.toFixed(2)} each</p>
                       </div>
                     </div>
                   );

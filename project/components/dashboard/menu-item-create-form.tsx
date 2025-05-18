@@ -59,7 +59,6 @@ export const CreateMenuItemDialog = ({
   const [newDietary, setNewDietary] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Sample categories for the dropdown
   const categories = [
     { id: "cat1", name: "Burgers" },
     { id: "cat2", name: "Sides" },
@@ -305,7 +304,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             </Label>
             <div className="col-span-3 flex items-center">
               <span className="mr-2 text-lg font-medium text-muted-foreground">
-                $
+                LKR 
               </span>
               <Input
                 id="price"

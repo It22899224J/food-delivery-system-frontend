@@ -35,6 +35,7 @@ const [restaurantDetails, setRestaurantDetails] = useState<Restaurant>();
           }
           const data = await restaurantApi.getByOwnerId(ownerId);
           setRestaurantId(data.id); 
+          localStorage.setItem("restaurantName", data.name);
           setRestaurantDetails(data);
         } catch (error) {
           console.error("Failed to fetch restaurant data:", error);
@@ -83,7 +84,7 @@ const [restaurantDetails, setRestaurantDetails] = useState<Restaurant>();
                 <CardHeader>
                   <CardTitle>Recent Orders</CardTitle>
                   <CardDescription>
-                    You have 5 orders requiring attention
+                   Pending Orders {orders.filter(order => order.status === 'PENDING').length}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -110,7 +111,7 @@ const [restaurantDetails, setRestaurantDetails] = useState<Restaurant>();
         </Tabs>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -162,10 +163,10 @@ const [restaurantDetails, setRestaurantDetails] = useState<Restaurant>();
             <p className="text-xs text-muted-foreground">items sold today</p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        {/* <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Order Status</CardTitle>
             <CardDescription>
@@ -224,7 +225,7 @@ const [restaurantDetails, setRestaurantDetails] = useState<Restaurant>();
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Popular Items</CardTitle>

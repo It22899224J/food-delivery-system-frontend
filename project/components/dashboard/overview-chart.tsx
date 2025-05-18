@@ -68,7 +68,7 @@ type Props = {
               tickLine={false}
               axisLine={false}
               className="text-xs text-muted-foreground"
-              tickFormatter={(value) => `${view === 'revenue' ? '$' : ''}${value}`}
+              tickFormatter={(value) => `${view === 'revenue' ? 'LKR' : ''}${value}`}
             />
             <Tooltip
               content={({ active, payload, label }) => {
@@ -78,7 +78,7 @@ type Props = {
                       <CardContent className="py-2 px-3">
                         <p className="text-xs text-muted-foreground mb-1">{label}</p>
                         <p className="text-sm font-bold">
-                          {view === 'revenue' ? '$' : ''}
+                          {view === 'revenue' ? 'LKR' : ''}
                           {payload[0].value}
                           {view === 'revenue' ? '' : ' orders'}
                         </p>

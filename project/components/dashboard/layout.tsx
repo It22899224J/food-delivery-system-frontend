@@ -34,8 +34,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: "Menu Management", href: "/dashboard/menu", icon: UtensilsCrossed },
     { name: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
     { name: "Analytics", href: "/dashboard/analytics", icon: BarChart4 },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
+
+  const name = localStorage.getItem("restaurantName")||"Restaurant Name";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -152,12 +153,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex-1 flex flex-col">
           {/* Desktop Header */}
           <header className="hidden lg:flex border-b py-2 px-6 items-center justify-end gap-4">
-            <Button variant="ghost" size="icon" aria-label="Notifications">
+            {/* <Button variant="ghost" size="icon" aria-label="Notifications">
               <Bell className="h-5 w-5" />
-            </Button>
+            </Button> */}
             <ModeToggle />
             <div className="flex items-center px-3 py-2 rounded-full text-sm font-medium bg-muted">
-              Restaurant Name
+              {name}
             </div>
           </header>
 

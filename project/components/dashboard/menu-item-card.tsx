@@ -64,7 +64,7 @@ export const MenuItemCard = ({
               </p>
             </div>
             <div className="font-bold text-lg text-primary">
-              ${item.price.toFixed(2)}
+              LKR {item.price.toFixed(2)}
             </div>
           </div>
         </CardHeader>
