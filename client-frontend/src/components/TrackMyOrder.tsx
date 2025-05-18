@@ -196,7 +196,7 @@ const TrackMyOrder: React.FC = () => {
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-lg font-semibold">
-                      $
+                      LKR 
                       {order.totalAmount?.toFixed(2) || order.total?.toFixed(2)}
                     </span>
                     <span
@@ -222,7 +222,7 @@ const TrackMyOrder: React.FC = () => {
                             <span>{getMenuItemName(item.itemId)}</span>
                           </div>
                           <span>
-                            ${(item.price * item.quantity).toFixed(2)}
+                            LKR {(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       ))}

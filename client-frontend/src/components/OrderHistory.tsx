@@ -291,7 +291,7 @@ const OrderHistory: React.FC = () => {
                             <span>{getMenuItemName(item.itemId)}</span>
                           </div>
                           <span>
-                            ${(item.price * item.quantity).toFixed(2)}
+                            LKR {(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       ))}

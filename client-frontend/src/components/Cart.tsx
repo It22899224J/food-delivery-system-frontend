@@ -106,7 +106,7 @@ const Cart: React.FC = () => {
                         <div className="flex flex-col sm:flex-row sm:justify-between">
                           <h3 className="font-medium">{item.name}</h3>
                           <p className="font-semibold">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            LKR {(item.price * item.quantity).toFixed(2)}
                           </p>
                         </div>
                         <p className="text-gray-500 text-sm mb-2">
@@ -157,16 +157,16 @@ const Cart: React.FC = () => {
             <div className="space-y-3 mb-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>LKR {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Delivery Fee</span>
-                <span>${deliveryFee.toFixed(2)}</span>
+                <span>LKR {deliveryFee.toFixed(2)}</span>
               </div>
               <div className="border-t pt-3 mt-3">
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
-                  <span>${(subtotal + deliveryFee).toFixed(2)}</span>
+                  <span>LKR {(subtotal + deliveryFee).toFixed(2)}</span>
                 </div>
               </div>
             </div>

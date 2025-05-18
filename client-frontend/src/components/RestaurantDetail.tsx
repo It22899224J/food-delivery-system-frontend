@@ -134,7 +134,7 @@ const RestaurantDetail: React.FC = () => {
             <div className="flex items-center">
               <DollarSign size={18} className="text-gray-500 mr-1" />
               <span className="text-gray-500">
-                Delivery: ${(restaurant.deliveryFee || 2.99).toFixed(2)}
+                Delivery: LKR {(restaurant.deliveryFee || 2.99).toFixed(2)}
               </span>
             </div>
           </div>
@@ -175,7 +175,7 @@ const RestaurantDetail: React.FC = () => {
                     {item.description}
                   </p>
                   <p className="text-orange-500 font-semibold">
-                    ${item.price.toFixed(2)}
+                    LKR {item.price.toFixed(2)}
                   </p>
 
                   {/* Dietary and Allergies */}

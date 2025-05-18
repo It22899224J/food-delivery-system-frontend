@@ -361,7 +361,7 @@ const Checkout: React.FC = () => {
                     <span className="font-medium mr-2">{item.quantity}x</span>
                     <span>{item.name}</span>
                   </div>
-                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <span>LKR {(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -370,7 +370,7 @@ const Checkout: React.FC = () => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
                 <span>
-                  $
+                  LKR 
                   {items
                     .reduce(
                       (total, item) => total + item.price * item.quantity,
@@ -382,7 +382,7 @@ const Checkout: React.FC = () => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Delivery Fee (10%)</span>
                 <span>
-                  $
+                  LKR 
                   {(
                     items.reduce(
                       (total, item) => total + item.price * item.quantity,
@@ -395,7 +395,7 @@ const Checkout: React.FC = () => {
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
                   <span>
-                    $
+                    LKR 
                     {(
                       items.reduce(
                         (total, item) => total + item.price * item.quantity,

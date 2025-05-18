@@ -268,12 +268,12 @@ const OrderTracking: React.FC = () => {
                 <span>
                   {item.quantity}x {getMenuItemName(item)}
                 </span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                <span>LKR {(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
             <div className="border-t pt-2 mt-2 font-semibold flex justify-between">
               <span>Total</span>
-              <span>${order.totalAmount.toFixed(2)}</span>
+              <span>LKR {order.totalAmount.toFixed(2)}</span>
             </div>
           </div>
         </div>
